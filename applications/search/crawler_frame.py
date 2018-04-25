@@ -55,6 +55,15 @@ class CrawlerFrame(IApplication):
     
 def extract_next_links(rawDataObj):
     outputLinks = []
+    print rawDataObj.url
+    try:
+        doc = html.document_fromstring(rawDataObj.content)
+        doc.make_links_absolute(rawDataObj.final_url if rawDataObj.is_redirected else rawDataObj.url)
+        outputLinks.extend([i[2] for i in doc.iterlinks()])
+    except:
+        pass
+
+
     '''
     rawDataObj is an object of type UrlResponse declared at L20-30
     datamodel/search/server_datamodel.py
@@ -65,6 +74,7 @@ def extract_next_links(rawDataObj):
     
     Suggested library: lxml
     '''
+
     return outputLinks
 
 def is_valid(url):
