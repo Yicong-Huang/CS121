@@ -59,7 +59,14 @@ def extract_next_links(rawDataObj):
     try:
         doc = html.document_fromstring(rawDataObj.content)
         doc.make_links_absolute(rawDataObj.final_url if rawDataObj.is_redirected else rawDataObj.url)
-        outputLinks.extend([i[2] for i in doc.iterlinks()])
+
+        urls = [i[2] for i in doc.iterlinks()]
+        for i  in range(len(urls)):
+            if "?" in urls[i]:
+                urls[i] = urls[i][:urls[i].index("p")]
+        print(urls)
+
+        outputLinks.extend(urls)
     except:
         pass
 
