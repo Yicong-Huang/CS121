@@ -11,6 +11,7 @@ from urlparse import urlparse, parse_qs
 from uuid import uuid4
 
 from itertools import imap, ifilter
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
@@ -25,6 +26,7 @@ class CrawlerFrame(IApplication):
     def __init__(self, frame):
         self.app_id = "Yicongh1ZicanlHwo"
         self.frame = frame
+        self.link_counts = defaultdict(int)
 
 
 
@@ -48,7 +50,7 @@ class CrawlerFrame(IApplication):
         for link in unprocessed_links:
             print "Got a link to download:", link.full_url
             downloaded = link.download()
-            links = extract_next_links(downloaded)
+            links = extract_next_links(downloaded, self.link_counts)
             for l in links:
                 if is_valid(l):
                     self.frame.add(Yicongh1ZicanlHwoLink(l))
@@ -78,10 +80,18 @@ def isAsset(url):
             + "|thmx|mso|arff|rtf|jar|csv"\
             + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf)$", url)
 
+def linkCount(f, link_counts):
+  def counter(url):
+    should_return = f(link_counts[url])
+    if should_return:
+      link_counts[url] += 1
+    return should_return
+  return counter
+
 def applyFilters(filters, iterable):
   return reduce(lambda s,f: ifilter(f,s), filters, iterable)
 
-def extract_next_links(rawDataObj):
+def extract_next_links(rawDataObj, link_counts):
     outputLinks = []
     print rawDataObj.url
     try:
@@ -90,17 +100,17 @@ def extract_next_links(rawDataObj):
 
         urls = [i[2] for i in doc.iterlinks()]
 
-        urls = imap(removeFragment, urls)
+        urls = set(imap(removeFragment, urls))
 
-        filters = [isHttpOrHttps, isNotAsset]
+        filters = [isHttpOrHttps, isNotAsset, linkCount(lambda x: x <= 1, link_counts)]
 
         urls = applyFilters(filters, urls)
 
-        # print(list(urls))
+        # print(list(urls), link_counts)
 
         outputLinks.extend(urls)
     except:
-        pass
+      pass
 
 
     '''
