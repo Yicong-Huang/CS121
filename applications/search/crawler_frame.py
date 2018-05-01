@@ -18,9 +18,12 @@ LOG_HEADER = "[CRAWLER]"
 class CrawlerFrame(IApplication):
     app_id = "Yicongh1ZicanlHwo"
 
+    starttime = time()
+
     def __init__(self, frame):
         self.app_id = "Yicongh1ZicanlHwo"
         self.frame = frame
+
 
 
     def initialize(self):
