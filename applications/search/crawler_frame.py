@@ -10,6 +10,8 @@ from uuid import uuid4
 from urlparse import urlparse, parse_qs
 from uuid import uuid4
 
+from itertools import imap, ifilter
+
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
 
@@ -55,7 +57,30 @@ class CrawlerFrame(IApplication):
         print (
             "Time time spent this session: ",
             time() - self.starttime, " seconds.")
-    
+
+def removeFragment(url):
+  return url.split("#")[0]
+
+def removeQuery(url):
+  return url.split("?")[0]
+
+def isNotAsset(url):
+  return not isAsset(url)
+
+def isHttpOrHttps(url):
+  return any(url.startswith(x+"://") for x in ["http", "https"])
+
+def isAsset(url):
+  url = removeFragment(removeQuery(url))
+  return re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
+            + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
+            + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
+            + "|thmx|mso|arff|rtf|jar|csv"\
+            + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf)$", url)
+
+def applyFilters(filters, iterable):
+  return reduce(lambda s,f: ifilter(f,s), filters, iterable)
+
 def extract_next_links(rawDataObj):
     outputLinks = []
     print rawDataObj.url
@@ -64,10 +89,14 @@ def extract_next_links(rawDataObj):
         doc.make_links_absolute(rawDataObj.final_url if rawDataObj.is_redirected else rawDataObj.url)
 
         urls = [i[2] for i in doc.iterlinks()]
-        for i  in range(len(urls)):
-            if "?" in urls[i]:
-                urls[i] = urls[i][:urls[i].index("p")]
-        print(urls)
+
+        urls = imap(removeFragment, urls)
+
+        filters = [isHttpOrHttps, isNotAsset]
+
+        urls = applyFilters(filters, urls)
+
+        # print(list(urls))
 
         outputLinks.extend(urls)
     except:
@@ -79,9 +108,9 @@ def extract_next_links(rawDataObj):
     datamodel/search/server_datamodel.py
     the return of this function should be a list of urls in their absolute form
     Validation of link via is_valid function is done later (see line 42).
-    It is not required to remove duplicates that have already been downloaded. 
+    It is not required to remove duplicates that have already been downloaded.
     The frontier takes care of that.
-    
+
     Suggested library: lxml
     '''
 
