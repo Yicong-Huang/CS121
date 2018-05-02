@@ -72,6 +72,11 @@ def isNotAsset(url):
 def isHttpOrHttps(url):
   return any(url.startswith(x+"://") for x in ["http", "https"])
 
+def isInDomain(domain):
+  def validator(url):
+    return domain in urlparse(url).hostname
+  return validator
+
 def isAsset(url):
   url = removeFragment(removeQuery(url))
   return re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4"\
@@ -102,7 +107,7 @@ def extract_next_links(rawDataObj, link_counts):
 
         urls = set(imap(removeFragment, urls))
 
-        filters = [isHttpOrHttps, isNotAsset, linkCount(lambda x: x <= 1, link_counts)]
+        filters = [isHttpOrHttps, isInDomain("ics.uci.edu"), isNotAsset, linkCount(lambda x: x < 1, link_counts)]
 
         urls = applyFilters(filters, urls)
 
