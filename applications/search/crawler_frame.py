@@ -11,7 +11,7 @@ from urlparse import urlparse, parse_qs
 from uuid import uuid4
 
 from itertools import imap, ifilter
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
@@ -27,6 +27,7 @@ class CrawlerFrame(IApplication):
         self.app_id = "Yicongh1ZicanlHwo"
         self.frame = frame
         self.link_counts = defaultdict(int)
+        self.pattern_counts = defaultdict(int)
 
 
 
@@ -50,7 +51,7 @@ class CrawlerFrame(IApplication):
         for link in unprocessed_links:
             print "Got a link to download:", link.full_url
             downloaded = link.download()
-            links = extract_next_links(downloaded, self.link_counts)
+            links = extract_next_links(downloaded, self.link_counts, self.pattern_counts)
             for l in links:
                 if is_valid(l):
                     self.frame.add(Yicongh1ZicanlHwoLink(l))
@@ -93,10 +94,19 @@ def linkCount(f, link_counts):
     return should_return
   return counter
 
+def patternCount(lookup, pattern_counts):
+  def counter(url):
+    for entry in lookup:
+      if re.search(entry, url) is not None:
+        pattern_counts[entry] += 1
+        return pattern_counts[entry] <= lookup[entry] or lookup[entry] == -1
+    raise KeyError("Cannot find pattern for %s" % url)
+  return counter
+
 def applyFilters(filters, iterable):
   return reduce(lambda s,f: ifilter(f,s), filters, iterable)
 
-def extract_next_links(rawDataObj, link_counts):
+def extract_next_links(rawDataObj, link_counts, pattern_counts):
     outputLinks = []
     print rawDataObj.url
     try:
@@ -107,15 +117,24 @@ def extract_next_links(rawDataObj, link_counts):
 
         urls = set(imap(removeFragment, urls))
 
-        filters = [isHttpOrHttps, isInDomain("ics.uci.edu"), isNotAsset, linkCount(lambda x: x < 1, link_counts)]
+        patterns = OrderedDict()
+        patterns['news/view_news(php)?'] = 50
+        patterns['.*'] = -1  # Any number of occurrence
+
+        filters = [ isHttpOrHttps,
+                    isInDomain("ics.uci.edu"),
+                    isNotAsset,
+                    patternCount(patterns, pattern_counts),
+                    linkCount(lambda x: x < 1, link_counts)
+                  ]
 
         urls = applyFilters(filters, urls)
 
         # print(list(urls), link_counts)
 
-        outputLinks.extend(urls)
-    except:
-      pass
+        outputLinks = urls
+    except Exception as e:
+      print(e)
 
 
     '''
