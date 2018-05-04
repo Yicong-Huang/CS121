@@ -11,7 +11,7 @@ from urlparse import urlparse, parse_qs
 from uuid import uuid4
 
 from itertools import imap, ifilter
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, Counter
 
 logger = logging.getLogger(__name__)
 LOG_HEADER = "[CRAWLER]"
@@ -28,6 +28,9 @@ class CrawlerFrame(IApplication):
         self.frame = frame
         self.visit_counts = defaultdict(int)
         self.pattern_counts = defaultdict(int)
+        self.outlink_counts = defaultdict(int)
+        self.download_counts = defaultdict(int)
+        self.total_download_counts = 0
 
 
 
@@ -48,10 +51,14 @@ class CrawlerFrame(IApplication):
             self.download_links(unprocessed_links)
 
     def download_links(self, unprocessed_links):
+        if shouldShutdown(self.total_download_counts):
+          self.done = True
+
         for link in unprocessed_links:
             print "Got a link to download:", link.full_url
             downloaded = link.download()
-            links = extract_next_links(downloaded, self.visit_counts, self.pattern_counts)
+            self.total_download_counts += 1
+            links = extract_next_links(downloaded, self.visit_counts, self.pattern_counts, self.outlink_counts, self.download_counts)
             for l in links:
                 if is_valid(l):
                     self.frame.add(Yicongh1ZicanlHwoLink(l))
@@ -60,6 +67,15 @@ class CrawlerFrame(IApplication):
         print (
             "Time time spent this session: ",
             time() - self.starttime, " seconds.")
+
+        # Subdomains
+        # print Counter([subdomain(x) for x in self.download_counts.keys()]).items()
+
+        # Outlinks
+        key = max(self.outlink_counts, key=self.outlink_counts.get)
+        print(key, self.outlink_counts[key])
+
+        # print (self.visit_counts, self.outlink_counts)
 
 def removeFragment(url):
   return url.split("#")[0]
@@ -72,6 +88,9 @@ def isNotAsset(url):
 
 def isHttpOrHttps(url):
   return any(url.startswith(x+"://") for x in ["http", "https"])
+
+def subdomain(url):
+  return urlparse(url).hostname.split('.')[0]
 
 def isInDomain(domain):
   def validator(url):
@@ -106,7 +125,10 @@ def patternCount(lookup, pattern_counts):
 def applyFilters(filters, iterable):
   return reduce(lambda s,f: ifilter(f,s), filters, iterable)
 
-def extract_next_links(rawDataObj, visit_counts, pattern_counts):
+def shouldShutdown(total_download_counts):
+  return total_download_counts > 5000
+
+def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts):
     outputLinks = []
     print rawDataObj.url
     try:
@@ -115,11 +137,18 @@ def extract_next_links(rawDataObj, visit_counts, pattern_counts):
 
         urls = [i[2] for i in doc.iterlinks()]
 
+        # Count the number of outlinks on the page
+        outlink_counts[rawDataObj.url] += len(urls)
+
+        download_counts[rawDataObj.url] += 1
+
         urls = set(imap(removeFragment, urls))
 
         # Define url patterns to match and it's max count
         patterns = OrderedDict()
         patterns['news/view_news(php)?'] = 50
+        patterns['calendar.ics.uci.edu/calendar.php'] = 0
+        patterns['ganglia.ics.uci.edu'] = 0
         patterns['.*'] = -1  # Any number of occurrence
 
         filters = [ isHttpOrHttps,
