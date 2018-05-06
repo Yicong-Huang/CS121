@@ -99,7 +99,10 @@ def subdomain(url):
 
 def isInDomain(domain):
     def validator(url):
-        return domain in urlparse(url).hostname
+	if urlparse(url).hostname == None:
+	    return False
+	else:
+            return domain in urlparse(url).hostname
 
     return validator
 
