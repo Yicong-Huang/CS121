@@ -68,7 +68,7 @@ class CrawlerFrame(IApplication):
             time() - self.starttime, " seconds.")
 
         # Subdomains
-        # print Counter([subdomain(x) for x in self.download_counts.keys()]).items()
+        print Counter([subdomain(x) for x in self.download_counts.keys()]).items()
 
         # Outlinks
         key = max(self.outlink_counts, key=self.outlink_counts.get)
