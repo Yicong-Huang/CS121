@@ -56,7 +56,8 @@ class CrawlerFrame(IApplication):
             print "Got a link to download:", link.full_url
             downloaded = link.download()
             self.total_download_counts += 1
-            links = extract_next_links(downloaded, self.visit_counts, self.pattern_counts, self.outlink_counts, self.download_counts, self.query_counts)
+            links = extract_next_links(downloaded, self.visit_counts, self.pattern_counts, self.outlink_counts,
+                                       self.download_counts, self.query_counts)
             for l in links:
                 if is_valid(l):
                     self.frame.add(Yicongh1ZicanlHwoLink(l))
@@ -141,25 +142,28 @@ def shouldShutdown(total_download_counts):
     return total_download_counts > 5000
 
 
-
-def queryCount(num_limit,query_counts):
+def queryCount(num_limit, query_counts):
     def count(url):
         url = url.split("?")[0]
         result = query_counts[url] < num_limit
         if result:
             query_counts[url] += 1
         return result
+
     return count
 
+
 def stripTrailingSlash(url):
-  return url.strip('/')
+    return url.strip('/')
+
 
 def imap_multiple(iterable, function, *f):
-  if f:
-    return imap_multiple(imap(function, iterable), *f)
-  return imap(function, iterable)
+    if f:
+        return imap_multiple(imap(function, iterable), *f)
+    return imap(function, iterable)
 
-def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts,query_counts):
+
+def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts, query_counts):
     outputLinks = []
     print rawDataObj.url
     rawDataObj.url = rawDataObj.url
@@ -185,13 +189,13 @@ def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts,
         patterns['ganglia.ics.uci.edu'] = 0
         patterns['.*'] = -1  # Any number of occurrence
 
-        filters = [ isHttpOrHttps,
-                    isInDomain("ics.uci.edu"),
-                    isNotAsset,
-                    queryCount(300,query_counts),
-                    patternCount(patterns, pattern_counts),
-                    linkCount(lambda x: x < 1, visit_counts)
-                  ]
+        filters = [isHttpOrHttps,
+                   isInDomain("ics.uci.edu"),
+                   isNotAsset,
+                   queryCount(300, query_counts),
+                   patternCount(patterns, pattern_counts),
+                   linkCount(lambda x: x < 1, visit_counts)
+                   ]
         urls = applyFilters(filters, urls)
 
         # print(list(urls), visit_counts)
@@ -230,7 +234,8 @@ def is_valid(url):
                                 + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
                                 + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
                                 + "|thmx|mso|arff|rtf|jar|csv" \
-                                + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf)$", parsed.path.lower())
+                                + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf)$", parsed.path.lower()) \
+               and u'\u200b' not in parsed.path
 
     except TypeError:
         print ("TypeError for ", parsed)
