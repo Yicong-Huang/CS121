@@ -151,10 +151,19 @@ def queryCount(num_limit,query_counts):
         return result
     return count
 
+def stripTrailingSlash(url):
+  return url.strip('/')
+
+def imap_multiple(iterable, function, *f):
+  if f:
+    return imap_multiple(imap(function, iterable), *f)
+  return imap(function, iterable)
 
 def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts,query_counts):
     outputLinks = []
     print rawDataObj.url.encode("utf-8")
+    rawDataObj.url = rawDataObj.url.encode("utf-8")
+    rawDataObj.url = stripTrailingSlash(rawDataObj.url)
     try:
         doc = html.document_fromstring(rawDataObj.content)
         doc.make_links_absolute(
@@ -167,7 +176,7 @@ def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts,
 
         download_counts[rawDataObj.url.encode("utf-8")] += 1
 
-        urls = set(imap(removeFragment, urls))
+        urls = set(imap_multiple(urls, stripTrailingSlash, removeFragment))
 
         # Define url patterns to match and it's max count
         patterns = OrderedDict()
