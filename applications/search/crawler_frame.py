@@ -161,20 +161,20 @@ def imap_multiple(iterable, function, *f):
 
 def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts,query_counts):
     outputLinks = []
-    print rawDataObj.url.encode("utf-8")
-    rawDataObj.url = rawDataObj.url.encode("utf-8")
+    print rawDataObj.url
+    rawDataObj.url = rawDataObj.url
     rawDataObj.url = stripTrailingSlash(rawDataObj.url)
     try:
         doc = html.document_fromstring(rawDataObj.content)
         doc.make_links_absolute(
-            rawDataObj.final_url.encode("utf-8") if rawDataObj.is_redirected else rawDataObj.url.encode("utf-8"))
+            rawDataObj.final_url if rawDataObj.is_redirected else rawDataObj.url)
 
-        urls = [i[2].encode("utf-8") for i in doc.iterlinks()]
+        urls = [i[2] for i in doc.iterlinks()]
 
         # Count the number of outlinks on the page
-        outlink_counts[rawDataObj.url.encode("utf-8")] += len(urls)
+        outlink_counts[rawDataObj.url] += len(urls)
 
-        download_counts[rawDataObj.url.encode("utf-8")] += 1
+        download_counts[rawDataObj.url] += 1
 
         urls = set(imap_multiple(urls, stripTrailingSlash, removeFragment))
 
@@ -221,7 +221,7 @@ def is_valid(url):
     Robot rules and duplication rules are checked separately.
     This is a great place to filter out crawler traps.
     '''
-    parsed = urlparse(url.encode("utf-8"))
+    parsed = urlparse(url)
     if parsed.scheme not in set(["http", "https"]):
         return False
     try:
