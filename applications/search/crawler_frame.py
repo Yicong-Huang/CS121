@@ -31,6 +31,7 @@ class CrawlerFrame(IApplication):
         self.outlink_counts = defaultdict(int)
         self.download_counts = defaultdict(int)
         self.total_download_counts = 0
+        self.query_counts = defaultdict(int)
 
 
 
@@ -58,7 +59,7 @@ class CrawlerFrame(IApplication):
             print "Got a link to download:", link.full_url
             downloaded = link.download()
             self.total_download_counts += 1
-            links = extract_next_links(downloaded, self.visit_counts, self.pattern_counts, self.outlink_counts, self.download_counts)
+            links = extract_next_links(downloaded, self.visit_counts, self.pattern_counts, self.outlink_counts, self.download_counts, self.query_counts)
             for l in links:
                 if is_valid(l):
                     self.frame.add(Yicongh1ZicanlHwoLink(l))
@@ -128,7 +129,18 @@ def applyFilters(filters, iterable):
 def shouldShutdown(total_download_counts):
   return total_download_counts > 5000
 
-def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts):
+
+def queryCount(num_limit,query_counts):
+    def count(url):
+        url = url.split("?")[0]
+        result = query_counts[url] < num_limit
+        if result:
+            query_counts[url] += 1
+        return result
+    return count
+
+
+def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts,query_counts):
     outputLinks = []
     print rawDataObj.url
     try:
@@ -154,6 +166,7 @@ def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts,
         filters = [ isHttpOrHttps,
                     isInDomain("ics.uci.edu"),
                     isNotAsset,
+                    queryCount(300,query_counts),
                     patternCount(patterns, pattern_counts),
                     linkCount(lambda x: x < 1, visit_counts)
                   ]
