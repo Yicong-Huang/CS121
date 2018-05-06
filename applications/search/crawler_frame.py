@@ -30,6 +30,7 @@ class CrawlerFrame(IApplication):
         self.outlink_counts = defaultdict(int)
         self.download_counts = defaultdict(int)
         self.total_download_counts = 0
+        self.query_counts = defaultdict(int)
 
     def initialize(self):
         self.count = 0
@@ -55,8 +56,7 @@ class CrawlerFrame(IApplication):
             print "Got a link to download:", link.full_url
             downloaded = link.download()
             self.total_download_counts += 1
-            links = extract_next_links(downloaded, self.visit_counts, self.pattern_counts, self.outlink_counts,
-                                       self.download_counts)
+            links = extract_next_links(downloaded, self.visit_counts, self.pattern_counts, self.outlink_counts, self.download_counts, self.query_counts)
             for l in links:
                 if is_valid(l):
                     self.frame.add(Yicongh1ZicanlHwoLink(l))
@@ -141,9 +141,29 @@ def shouldShutdown(total_download_counts):
     return total_download_counts > 5000
 
 
-def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts):
+
+def queryCount(num_limit,query_counts):
+    def count(url):
+        url = url.split("?")[0]
+        result = query_counts[url] < num_limit
+        if result:
+            query_counts[url] += 1
+        return result
+    return count
+
+def stripTrailingSlash(url):
+  return url.strip('/')
+
+def imap_multiple(iterable, function, *f):
+  if f:
+    return imap_multiple(imap(function, iterable), *f)
+  return imap(function, iterable)
+
+def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts, download_counts,query_counts):
     outputLinks = []
     print rawDataObj.url.encode("utf-8")
+    rawDataObj.url = rawDataObj.url.encode("utf-8")
+    rawDataObj.url = stripTrailingSlash(rawDataObj.url)
     try:
         doc = html.document_fromstring(rawDataObj.content)
         doc.make_links_absolute(
@@ -156,7 +176,7 @@ def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts,
 
         download_counts[rawDataObj.url.encode("utf-8")] += 1
 
-        urls = set(imap(removeFragment, urls))
+        urls = set(imap_multiple(urls, stripTrailingSlash, removeFragment))
 
         # Define url patterns to match and it's max count
         patterns = OrderedDict()
@@ -165,13 +185,13 @@ def extract_next_links(rawDataObj, visit_counts, pattern_counts, outlink_counts,
         patterns['ganglia.ics.uci.edu'] = 0
         patterns['.*'] = -1  # Any number of occurrence
 
-        filters = [isHttpOrHttps,
-                   isInDomain("ics.uci.edu"),
-                   isNotAsset,
-                   patternCount(patterns, pattern_counts),
-                   linkCount(lambda x: x < 1, visit_counts)
-                   ]
-
+        filters = [ isHttpOrHttps,
+                    isInDomain("ics.uci.edu"),
+                    isNotAsset,
+                    queryCount(300,query_counts),
+                    patternCount(patterns, pattern_counts),
+                    linkCount(lambda x: x < 1, visit_counts)
+                  ]
         urls = applyFilters(filters, urls)
 
         # print(list(urls), visit_counts)
