@@ -1,6 +1,6 @@
 import logging
 import re
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict,Counter
 from itertools import imap, ifilter
 from time import time
 from urlparse import urlparse
