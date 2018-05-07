@@ -1,6 +1,6 @@
 import logging
 import re
-from collections import defaultdict, OrderedDict,Counter
+from collections import defaultdict, OrderedDict, Counter
 from itertools import imap, ifilter
 from time import time
 from urlparse import urlparse
@@ -99,9 +99,9 @@ def subdomain(url):
 
 def isInDomain(domain):
     def validator(url):
-	if urlparse(url).hostname == None:
-	    return False
-	else:
+        if urlparse(url).hostname == None:
+            return False
+        else:
             return domain in urlparse(url).hostname
 
     return validator
@@ -142,7 +142,7 @@ def applyFilters(filters, iterable):
 
 
 def shouldShutdown(total_download_counts):
-    return total_download_counts > 5000
+    return total_download_counts > 50
 
 
 def queryCount(num_limit, query_counts):
