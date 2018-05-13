@@ -1,9 +1,0 @@
-version: '3'
-services:
-  indexer:
-    build: ./src
-
-  redis:
-    image: redis:4
-    ports:
-      - 6379:6379
