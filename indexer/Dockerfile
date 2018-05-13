@@ -1,7 +1,7 @@
 FROM ubuntu:bionic
 
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y python3.7 python-pip python-dev build-essential
+RUN apt-get install -y python3.7 python-pip build-essential
 
 WORKDIR /tmp
 ADD http://download.redis.io/redis-stable.tar.gz .
