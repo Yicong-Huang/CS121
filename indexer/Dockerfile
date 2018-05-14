@@ -1,7 +1,7 @@
 FROM ubuntu:bionic
 
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y python3.7 python-pip build-essential
+RUN apt-get install -y python3 python3-pip build-essential
 
 WORKDIR /tmp
 ADD http://download.redis.io/redis-stable.tar.gz .
@@ -12,7 +12,7 @@ WORKDIR /app
 
 COPY src/requirements.txt .
 
-RUN pip install --no-cache -r requirements.txt
+RUN pip3 install --no-cache -r requirements.txt
 
 COPY entry.sh /entry.sh
 ENTRYPOINT [ "/entry.sh" ]

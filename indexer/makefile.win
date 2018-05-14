@@ -1,18 +1,18 @@
 build-nocache: clean
 	@docker build --no-cache . -t indexer
-	@echo > .indexer
+	@echo > .main
 
-.indexer:
+.main:
 	@docker build . -t indexer
-	@touch .indexer
+	@touch .main
 
-run: .indexer
-	@docker run -it --rm -v %cd%\src:/app indexer python indexer.py
+run: .main
+	@docker run -it --rm -v %cd%\src:/app indexer python3 main.py
 
-interactive: .indexer
-	@docker run -it --rm -v %cd%\src:/app indexer python -i indexer.py
+interactive: .main
+	@docker run -it --rm -v %cd%\src:/app indexer python3 -i main.py
 
-build: .indexer
+build: .main
 
 clean:
-	-@rm .indexer
+	-@rm .main
