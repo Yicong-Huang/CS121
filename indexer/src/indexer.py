@@ -1,13 +1,23 @@
+import json
+
 from HTML import Html
 
 
-class indexer:
+class Indexer:
 
     def __init__(self, token_store):
-        self.ts = token_store
-    # @staticmethod
-    # def tokenize(html:html):
-    #
+        self.store = token_store
+
+    def run(self, book_file):
+        urls = json.load(book_file)
+        for path, url in list(urls.items())[:5]:
+            h = Html(path, url)
+            for token, n in h.tokens().items():
+                for _ in range(n):
+                    self.store.store_token(token, path + ":" + url)
+
+    def show_store(self):
+        print(list(self.store.token_occurrence_pairs()))
 
 
 if __name__ == '__main__':
