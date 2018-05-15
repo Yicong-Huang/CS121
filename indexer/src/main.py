@@ -1,22 +1,18 @@
+import json
+
+from HTML import Html
 from tokenstore import TokenStore
 
-store = TokenStore()
-store.storeToken('123', '2')
-store.storeToken('123', '1')
-store.storeToken('123', '3')
-store.storeToken('123', '1')
-store.storeToken('123', '2')
+if __name__ == '__main__':
+    store = TokenStore()
 
-store.storeToken('456', '1')
-store.storeToken('456', '1')
-store.storeToken('456', '1')
-store.storeToken('234', '1')
-store.storeToken('900', '1')
+    urls = json.load(open("WEBPAGES_RAW/bookkeeping.json"))
+    for path, url in list(urls.items()):
 
-# print(list(store.tokens()))
+        h = Html(path, url)
+        for token, n in h.tokens().items():
+            for _ in range(n):
+                # print("pushing", token, "with", path + ":" + url)
+                store.store_token(token, path + ":" + url)
 
-# print(list(store.getTokensOnPage(1)))
-
-# print(store.tf('900', '1'))
-
-print(store.idf(1,2))
+    print(list(store.get_tokens_on_page("0/1:www.ics.uci.edu/~ejw/pres/stc-99/sld009.htm")))

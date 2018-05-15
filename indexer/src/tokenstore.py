@@ -31,8 +31,8 @@ class TokenStore:
     def occurrences(self):
         return (pair[1] for pair in self.token_occurrence_pairs())
 
-    def pages_count(self):
-        return reduce(operator.add, (Counter(x) for x in self.occurrences()))
+    # def pages_count(self):
+    #     return reduce(operator.add, (Counter(x) for x in self.occurrences()))
 
     def tf(self, token, page):
         for pair in self.r.zrange(token, 0, -1, withscores=True):
@@ -40,6 +40,6 @@ class TokenStore:
                 return pair[1]
         return 0
 
-    def idf(self, token, page):
-        print(list(self.pages_count()))
-        pass
+    # def idf(self, token, page):
+    #     print(list(self.pages_count()))
+    #     pass
