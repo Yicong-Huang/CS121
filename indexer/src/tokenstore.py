@@ -6,8 +6,8 @@ import redis
 class TokenStore:
 
     @staticmethod
-    def decode(str):
-        return str.decode('utf-8')
+    def decode(s):
+        return s.decode('utf-8')
 
     def __init__(self, prefix='token'):
         self._prefix = prefix
@@ -22,8 +22,8 @@ class TokenStore:
 
     def token_occurrence_pairs(self):
         for token in self.tokens():
-            occurrence = self._redis.zrange(token, 0, -1, withscores=True)
-            yield token, list(map(lambda x: (TokenStore.decode(x[0]), x[1]), occurrence))
+            yield token, map(lambda x: (TokenStore.decode(x[0]), x[1]),
+                             self._redis.zrange(token, 0, -1, withscores=True))
 
     def prefixed(self, token):
         return "{}:{}".format(self._prefix, token)
@@ -38,16 +38,13 @@ class TokenStore:
         return self._redis.zcard(self.prefixed(token))
 
     def tf(self, token, page):
-        for pair in self._redis.zrange(self.prefixed(token), 0, -1, withscores=True):
-            if TokenStore.decode(pair[0]) == str(page):
-                return pair[1]
-        return 0
+        return int(self._redis.zscore(self.prefixed(token), page))
 
     def idf(self, token):
         return math.log(self.get_document_count() / self.pages_count(token))
 
     def increment_document_count(self):
-        self._redis.set("document_count", self._redis.incr("document_count"))
+        self._redis.incr("document_count")
 
     def get_document_count(self):
         return int(self._redis.get("document_count") or 0)
