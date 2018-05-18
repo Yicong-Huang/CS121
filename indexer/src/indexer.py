@@ -15,6 +15,8 @@ class Indexer:
             for token, n in h.tokens().items():
                 for _ in range(n):
                     self.store.store_token(token, path + ":" + url)
+            self.store.increment_document_count()
+
 
     def show_store(self):
         print(list(self.store.token_occurrence_pairs()))
