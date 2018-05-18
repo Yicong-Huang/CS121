@@ -10,7 +10,7 @@ class Indexer:
 
     def run(self, book_file):
         urls = json.load(book_file)
-        for path, url in list(urls.items())[:5]:
+        for path, url in list(urls.items())[:1]:
             h = Html(path, url)
             for token, n in h.tokens().items():
                 for _ in range(n):
