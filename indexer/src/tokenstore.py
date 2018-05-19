@@ -48,3 +48,6 @@ class TokenStore:
 
     def get_document_count(self):
         return int(self._redis.get("document_count") or 0)
+
+    def zrevrange(self, token):
+        return self._redis.zrevrange(self.prefixed(token), 0, -1, withscores=True)
