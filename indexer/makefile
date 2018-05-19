@@ -12,6 +12,9 @@ run: .main
 interactive: .main
 	@docker run -it --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump indexer python3 -i main.py
 
+daemon: .main
+	@docker run -d --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump indexer python3 main.py
+
 build: .main
 
 clean:
