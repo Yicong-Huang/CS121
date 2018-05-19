@@ -13,16 +13,16 @@ class Indexer:
         in_progress_document = self.store.get_in_progress_document()
         last_document = self.store.get_last_document()
 
-        for path, url in list(urls.items())[:101]:
+        for path, url in urls.items():
             document = path + ":" + url
 
             if in_progress_document or last_document:
                 if (in_progress_document and document != in_progress_document) or (
                         last_document and document != last_document):
-                    print("skipping", path)
                     continue
                 elif document == in_progress_document:
-                    print("deleting", path)
+                    print("restart with", path)
+                    print("deleting unfinished", path)
                     self.store.delete_in_progress_document()
                     in_progress_document = None
 
