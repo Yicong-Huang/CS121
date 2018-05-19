@@ -13,19 +13,21 @@ class Indexer:
         in_progress_document = self.store.get_in_progress_document()
         last_document = self.store.get_last_document()
 
-        for path, url in list(urls.items())[:100]:
+        for path, url in list(urls.items())[:101]:
             document = path + ":" + url
 
             if in_progress_document or last_document:
-                if document != in_progress_document:
+                if (in_progress_document and document != in_progress_document) or (
+                        last_document and document != last_document):
                     print("skipping", path)
                     continue
                 elif document == in_progress_document:
                     print("deleting", path)
                     self.store.delete_in_progress_document()
                     in_progress_document = None
-                elif document != last_document:
-                    print("skipping", path)
+
+                elif document == last_document:
+                    last_document = None
                     continue
 
             h = Html(path, url)
