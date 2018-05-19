@@ -51,3 +51,20 @@ class TokenStore:
 
     def zrevrange(self, token):
         return self._redis.zrevrange(self.prefixed(token), 0, -1, withscores=True)
+
+    def set_in_progress_document(self, document):
+        self._redis.set("in_progress_document", document)
+
+    def get_in_progress_document(self):
+        return TokenStore.decode(self._redis.get("in_progress_document") or b'')
+
+    def delete_in_progress_document(self):
+        in_progress_document = self.get_in_progress_document()
+        for token in self.tokens():
+            self._redis.zrem(token, in_progress_document)
+        self._redis.incrby("document_count", -1)
+        self._redis.delete("in_progress_document")
+
+    # def finish_document(self):
+    #     self._redis.set("last_document", self._redis.get("in_progress_document"))
+    #     self._redis.delete("in_progress_document")
