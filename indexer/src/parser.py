@@ -3,7 +3,7 @@ import json
 from HTML import Html
 
 
-class Indexer:
+class Parser:
 
     def __init__(self, token_store):
         self.store = token_store
@@ -32,6 +32,7 @@ class Indexer:
 
     def parse(self, path, url):
         document = path + ":" + url
+        print("parsing", url, "at path", path)
         h = Html(path, url)
         self.store.set_in_progress_document(document)
         for token, n in h.tokens().items():
