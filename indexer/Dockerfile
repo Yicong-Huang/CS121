@@ -14,5 +14,7 @@ COPY src/requirements.txt .
 
 RUN pip3 install --no-cache -r requirements.txt
 
+VOLUME /redis-dump
+COPY redis/ /redis
 COPY entry.sh /entry.sh
 ENTRYPOINT [ "/entry.sh" ]

@@ -1,3 +1,5 @@
 WEBPAGES_RAW/
 *.rdb
 .main
+redis-dump
+__pycache__

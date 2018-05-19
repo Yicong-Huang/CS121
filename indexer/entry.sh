@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start redis
-eval nohup redis-server &> /var/log/redis.log &
+eval /redis/redis_init_script start
 
 # Run CMD passed by docker
 exec "$@"
