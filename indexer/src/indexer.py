@@ -32,7 +32,7 @@ class Indexer:
 
     def index(self, path, url):
         document = path + ":" + url
-        print("indexing", url, "at path", path)
+        print("indexing", path, url)
         h = Html(path, url)
         self.store.set_in_progress_document(document)
         for token, n in h.tokens().items():
