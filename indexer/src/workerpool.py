@@ -1,6 +1,6 @@
 from indexer import Indexer
+from poolqueue import PoolQueue
 import json
-import queue
 import threading
 
 class WorkerPool:
@@ -8,28 +8,33 @@ class WorkerPool:
         self.workers = workers
         self.bookfile = bookfile
         self.entries = {}
-        self.workqueue = queue.Queue()
+        self.workqueue = PoolQueue()
         self.store = store
         self._setup(store)
 
     def _setup(self, store):
         with open(self.bookfile, 'r') as file:
             self.entries = json.load(file)
-            for (k,v) in self.entries.items():
-                self.workqueue.put((k,v))
+            for (k,v) in list(self.entries.items())[:10]:
+                self.workqueue.enqueue_idle("%s:%s" % (k,v))
 
     def _worker(self):
         while True:
-            item = self.workqueue.get()
+            item = self.workqueue.get_next_job()
             if item is None:
                 break
-            Indexer(self.store).parse(*item)
+            item = item.split(':')
+            parts = (item[0], ''.join(item[1:]))
+            Indexer(self.store).index(*parts)
+            self.workqueue.complete(item)
 
     def execute(self):
         threads = []
         for _ in range(self.workers):
             t = threading.Thread(target=self._worker)
+            t.daemon = True
             t.start()
             threads.append(t)
 
-        self.workqueue.join()
+        for thread in threads:
+            thread.join()
