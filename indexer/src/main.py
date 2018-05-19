@@ -1,9 +1,9 @@
-from parser import Parser
+from indexer import Indexer
 from tokenstore import TokenStore
 
 if __name__ == '__main__':
     store = TokenStore()
-    parser = Parser(store)
+    indexer = Indexer(store)
 
     book_file = open("WEBPAGES_RAW/bookkeeping.json")
-    parser.run(book_file)
+    indexer.run(book_file)
