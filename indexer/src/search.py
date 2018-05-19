@@ -26,4 +26,4 @@ if __name__ == '__main__':
 
     while True:
         search_query, arg = command_line()
-        search_engine.show_search(*(search_query, False) if arg == "all" else (search_query))
+        search_engine.show_search(*[search_query, False] if arg == "all" else [search_query])
