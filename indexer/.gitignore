@@ -3,3 +3,4 @@ WEBPAGES_RAW/
 .main
 redis-dump
 __pycache__
+*.zip
