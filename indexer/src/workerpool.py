@@ -15,17 +15,14 @@ class WorkerPool:
     def _setup(self, store):
         with open(self.bookfile, 'r') as file:
             self.entries = json.load(file)
-            for (k,v) in list(self.entries.items())[:10]:
-                self.workqueue.enqueue_idle("%s:%s" % (k,v))
+            self.workqueue.enqueue_idles(((k,v) for k,v in self.entries.items()))
 
     def _worker(self):
         while True:
             item = self.workqueue.get_next_job()
             if item is None:
                 break
-            item = item.split(':')
-            parts = (item[0], ''.join(item[1:]))
-            Indexer(self.store).index(*parts)
+            Indexer(self.store).index(*item)
             self.workqueue.complete(item)
 
     def execute(self):

@@ -69,6 +69,22 @@ class TokenStore:
         self._redis.incrby("document_count", -1)
         self._redis.delete("in_progress_document")
 
+    def deduplicate(self):
+        print("Searching for unfinished jobs...")
+        active_jobs = [job for job in self._redis.lrange('active', 0, -1)]
+        self.delete_pages((job[0] for job in active_jobs))
+        pipeline = self._redis.pipeline()
+        for _ in range(len(active_jobs)):
+            pipeline.rpoplpush('active', 'idle')
+        pipeline.execute()
+
+    def delete_pages(self, pages):
+        pipeline = self._redis.pipeline()
+        for page in pages:
+            for token in self.tokens():
+                pipeline.zrem(token, page)
+        pipeline.execute()
+
     def finish_document(self):
         self._redis.set("last_document", self._redis.get("in_progress_document"))
         self._redis.delete("in_progress_document")
