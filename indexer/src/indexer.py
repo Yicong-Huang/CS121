@@ -15,7 +15,6 @@ class Indexer:
 
         for path, url in urls.items():
             document = path + ":" + url
-
             if in_progress_document or last_document:
                 if (in_progress_document and document != in_progress_document) or (
                         last_document and document != last_document):
@@ -29,14 +28,13 @@ class Indexer:
                 elif document == last_document:
                     last_document = None
                     continue
+            self.parse(path, url)
 
-            h = Html(path, url)
-
-            self.store.set_in_progress_document(document)
-            for token, n in h.tokens().items():
-                self.store.store_token(token, document, amount=n)
-            self.store.increment_document_count()
-            self.store.finish_document()
-
-    def show_store(self):
-        print(list(self.store.token_occurrence_pairs()))
+    def parse(self, path, url):
+        document = path + ":" + url
+        h = Html(path, url)
+        self.store.set_in_progress_document(document)
+        for token, n in h.tokens().items():
+            self.store.store_token(token, document, amount=n)
+        self.store.increment_document_count()
+        self.store.finish_document()
