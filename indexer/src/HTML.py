@@ -1,7 +1,7 @@
 import re
 from collections import Counter
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 
 
 class Html:
@@ -16,5 +16,11 @@ class Html:
             print("not html")
 
     def tokens(self):
+
+        for comment in self.soup.findAll(text=lambda text: isinstance(text, Comment)):
+            comment.extract()
+
+        for script in self.soup('script'):
+            script.extract()
 
         return Counter(re.findall("[a-zA-Z\d]+", self.soup.get_text()))
