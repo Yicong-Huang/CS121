@@ -54,9 +54,13 @@ class TokenStore:
 
     def set_in_progress_document(self, document):
         self._redis.set("in_progress_document", document)
+        self._redis.delete("last_document")
 
     def get_in_progress_document(self):
         return TokenStore.decode(self._redis.get("in_progress_document") or b'')
+
+    def get_last_document(self):
+        return TokenStore.decode(self._redis.get("last_document") or b'')
 
     def delete_in_progress_document(self):
         in_progress_document = self.get_in_progress_document()
@@ -65,6 +69,6 @@ class TokenStore:
         self._redis.incrby("document_count", -1)
         self._redis.delete("in_progress_document")
 
-    # def finish_document(self):
-    #     self._redis.set("last_document", self._redis.get("in_progress_document"))
-    #     self._redis.delete("in_progress_document")
+    def finish_document(self):
+        self._redis.set("last_document", self._redis.get("in_progress_document"))
+        self._redis.delete("in_progress_document")
