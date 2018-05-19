@@ -13,8 +13,8 @@ class TokenStore:
         self._prefix = prefix
         self._redis = redis.Redis(host='127.0.0.1', port=6379, db=0)
 
-    def store_token(self, token, page):
-        if not self._redis.zincrby(self.prefixed(token), page):
+    def store_token(self, token, page, amount=1):
+        if not self._redis.zincrby(self.prefixed(token), page, amount=amount):
             raise RuntimeError("Error: Failed to storeIndex(token: {}, page: {})!".format(token, page))
 
     def tokens(self):
