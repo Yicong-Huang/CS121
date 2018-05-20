@@ -1,4 +1,5 @@
 import json
+import threading
 
 from HTML import Html
 
@@ -10,32 +11,14 @@ class Indexer:
 
     def run(self, book_file):
         urls = json.load(book_file)
-        in_progress_document = self.store.get_in_progress_document()
-        last_document = self.store.get_last_document()
 
         for path, url in urls.items():
-            document = path + ":" + url
-            if in_progress_document or last_document:
-                if (in_progress_document and document != in_progress_document) or (
-                        last_document and document != last_document):
-                    continue
-                elif document == in_progress_document:
-                    print("restart with", path)
-                    print("deleting unfinished", path)
-                    self.store.delete_in_progress_document()
-                    in_progress_document = None
-
-                elif document == last_document:
-                    last_document = None
-                    continue
             self.index(path, url)
 
     def index(self, path, url):
         document = path + ":" + url
-        # print("indexing", path, url)
+        print(threading.current_thread().getName(), "indexing", path, url)
         h = Html(path, url)
-        self.store.set_in_progress_document(document)
         for token, n in h.tokens().items():
             self.store.store_token(token, document, amount=n)
         self.store.increment_document_count()
-        self.store.finish_document()

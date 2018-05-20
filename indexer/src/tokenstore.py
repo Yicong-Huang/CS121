@@ -2,6 +2,8 @@ import math
 
 import redis
 
+from poolqueue import PoolQueue
+
 
 class TokenStore:
 
@@ -52,39 +54,20 @@ class TokenStore:
     def zrevrange(self, token):
         return self._redis.zrevrange(self.prefixed(token), 0, -1, withscores=True)
 
-    def set_in_progress_document(self, document):
-        self._redis.set("in_progress_document", document)
-        self._redis.delete("last_document")
-
-    def get_in_progress_document(self):
-        return TokenStore.decode(self._redis.get("in_progress_document") or b'')
-
-    def get_last_document(self):
-        return TokenStore.decode(self._redis.get("last_document") or b'')
-
-    def delete_in_progress_document(self):
-        in_progress_document = self.get_in_progress_document()
-        for token in self.tokens():
-            self._redis.zrem(token, in_progress_document)
-        self._redis.incrby("document_count", -1)
-        self._redis.delete("in_progress_document")
-
     def deduplicate(self):
         print("Searching for unfinished jobs...")
-        active_jobs = [job for job in self._redis.lrange('active', 0, -1)]
-        self.delete_pages((job[0] for job in active_jobs))
+        active_jobs = [job for job in self._redis.lrange(PoolQueue.ACTIVE, 0, -1)]
         pipeline = self._redis.pipeline()
-        for _ in range(len(active_jobs)):
-            pipeline.rpoplpush('active', 'idle')
+        self.delete_pages((job[0] for job in active_jobs), pipeline)
+        for _ in active_jobs:
+            self._redis.rpoplpush(PoolQueue.ACTIVE, PoolQueue.IDLE)
+        self._redis.delete(PoolQueue.ACTIVE)
         pipeline.execute()
 
-    def delete_pages(self, pages):
-        pipeline = self._redis.pipeline()
-        for page in pages:
-            for token in self.tokens():
+    def delete_pages(self, pages, pipeline):
+        for token in self.tokens():
+            for page in pages:
                 pipeline.zrem(token, page)
-        pipeline.execute()
 
-    def finish_document(self):
-        self._redis.set("last_document", self._redis.get("in_progress_document"))
-        self._redis.delete("in_progress_document")
+    def get_idle(self):
+        return self._redis.lrange(PoolQueue.IDLE, 0, -1)
