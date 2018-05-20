@@ -59,10 +59,14 @@ class TokenStore:
         active_jobs = [job for job in self._redis.lrange(PoolQueue.ACTIVE, 0, -1)]
         pipeline = self._redis.pipeline()
         self.delete_pages((job[0] for job in active_jobs), pipeline)
+        if not active_jobs:
+            print("No unfinished jobs!")
+            return
         for _ in active_jobs:
             self._redis.rpoplpush(PoolQueue.ACTIVE, PoolQueue.IDLE)
         self._redis.delete(PoolQueue.ACTIVE)
         pipeline.execute()
+        print("Done deduplicating.")
 
     def delete_pages(self, pages, pipeline):
         for token in self.tokens():

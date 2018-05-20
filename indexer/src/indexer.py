@@ -15,3 +15,6 @@ class Indexer:
         for token, n in h.tokens().items():
             self.store.store_token(token, document, amount=n)
         self.store.increment_document_count()
+
+    def safe_terminate(self):
+        print(threading.current_thread().getName(), "terminated safely")
