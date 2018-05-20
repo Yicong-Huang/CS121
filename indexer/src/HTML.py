@@ -22,5 +22,9 @@ class Html:
 
         for script in self.soup('script'):
             script.extract()
+        for link in self.soup('link'):
+            link.extract()
+        for style in self.soup("style"):
+            style.extract()
 
-        return Counter(re.findall("[a-zA-Z\d]+", self.soup.get_text()))
+        return Counter(re.findall("[a-zA-Z\d]+", self.soup.get_text(strip=True)))

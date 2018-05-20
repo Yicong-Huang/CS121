@@ -14,7 +14,6 @@ def encode_job(job):
 def decode_job(s):
     s = s.lstrip("job:").split(':')
     parts = (s[0], ''.join(s[1:]))
-    print(parts)
     return parts
 
 

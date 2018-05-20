@@ -23,7 +23,7 @@ class WorkerPool:
             item = self.work_queue.get_next_job()
             if item is None:
                 break
-            indexer.index(*item)
+            indexer.run(*item)
             self.work_queue.complete(item)
 
     def execute(self):

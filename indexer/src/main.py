@@ -7,5 +7,5 @@ if __name__ == '__main__':
     store.deduplicate()
     print("Done deduplicating.")
 
-    pool = WorkerPool(store, workers=32, book_file=open("WEBPAGES_RAW/bookkeeping.json", 'r'))
+    pool = WorkerPool(store, workers=24, book_file=open("WEBPAGES_RAW/bookkeeping.json", 'r'))
     pool.execute()
