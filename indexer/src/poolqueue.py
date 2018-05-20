@@ -2,19 +2,7 @@ import threading
 
 import redis
 
-
-def decode(s):
-    return s.decode('utf-8')
-
-
-def encode_job(job):
-    return 'job:%s:%s' % job
-
-
-def decode_job(s):
-    s = s.lstrip("job:").split(':')
-    parts = (s[0], ''.join(s[1:]))
-    return parts
+from job import Job
 
 
 class PoolQueue:
@@ -29,20 +17,18 @@ class PoolQueue:
         print("Enqueuing jobs...")
         pipeline = self.redis.pipeline()
         for job in jobs:
-            job = encode_job(job)
             pipeline.rpush(queue, job)
         pipeline.execute()
 
     def get_next_job(self, f=IDLE, t=ACTIVE):
-        job = self.redis.rpoplpush(f, t)
-        if job is None:
+        job_bytes = self.redis.rpoplpush(f, t)
+        if job_bytes is None:
             print("No more job available!")
         else:
-            job = decode_job(decode(job))
-            print(threading.current_thread().getName(),"get Next Job: %s" % job[0])
-        return job
+            job = Job.bytes_to_job(job_bytes)
+            print(threading.current_thread().getName(), "get Next Job: %s" % job.path)
+            return job
 
     def complete(self, job, queue=ACTIVE):
-        print(threading.current_thread().getName(), "completed Job: %s" % job[0])
-        job = encode_job(job)
+        print(threading.current_thread().getName(), "completed Job: %s" % job.path)
         self.redis.lrem(queue, job)

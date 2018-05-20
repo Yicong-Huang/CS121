@@ -2,6 +2,7 @@ import json
 import threading
 
 from indexer import Indexer
+from job import Job
 from poolqueue import PoolQueue
 
 
@@ -15,16 +16,16 @@ class WorkerPool:
 
     def _setup(self, file):
         if not self.token_store.get_idle():
-            self.work_queue.enqueue_idles(json.load(file).items())
+            self.work_queue.enqueue_idles((Job(path, url) for path, url in json.load(file).items()))
 
     def _worker(self):
         indexer = Indexer(self.token_store)
         while True:
-            item = self.work_queue.get_next_job()
-            if item is None:
+            job = self.work_queue.get_next_job()
+            if job is None:
                 break
-            indexer.run(*item)
-            self.work_queue.complete(item)
+            indexer.run(job.path, job.url)
+            self.work_queue.complete(job)
 
     def execute(self):
         threads = []
