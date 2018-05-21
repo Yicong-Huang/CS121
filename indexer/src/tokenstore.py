@@ -39,18 +39,23 @@ class TokenStore:
     def pages_count(self, token):
         return self._redis.zcard(self.prefixed(token))
 
+    '''tf returns the tf value(term frequency) of the specific token in the specific document'''
     def tf(self, token, page):
         return int(self._redis.zscore(self.prefixed(token), page))
 
+    '''idf returns the idf(inverse document frequency) value of the specific token'''
     def idf(self, token):
-        return math.log(self.get_document_count() / self.pages_count(token))
+        return math.log10(self.get_document_count() / self.pages_count(token))
 
+    '''increment the total number of documents stored in the database'''
     def increment_document_count(self):
         self._redis.incr("document_count")
 
+    '''return the number of the documents stored in the databse'''
     def get_document_count(self):
         return int(self._redis.get("document_count") or 0)
 
+    '''return a list of urls contains the specific token and sorted by the token's occurenece'''
     def zrevrange(self, token):
         return self._redis.zrevrange(self.prefixed(token), 0, -1, withscores=True)
 
