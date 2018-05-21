@@ -20,7 +20,8 @@ class WorkerPool:
         if not self._token_store.get_idle():
             self._work_queue.enqueue_idles((Job(path, url) for path, url in self._sort_jobs(json.load(file))))
 
-    def _sort_jobs(self, job_dict):
+    @staticmethod
+    def _sort_jobs(job_dict):
         return sorted(list(job_dict.items()), key=lambda item: tuple(int(i) for i in item[0].split("/")), reverse=True)
 
     def _worker(self):
