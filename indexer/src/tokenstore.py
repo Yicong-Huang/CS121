@@ -1,7 +1,7 @@
 import math
 from collections import Generator
 
-import redis
+from redis import Redis
 
 from job import Job
 from poolqueue import PoolQueue
@@ -15,43 +15,66 @@ class TokenStore:
 
     def __init__(self, prefix='token'):
         self._prefix = prefix
-        self._redis = redis.Redis(host='127.0.0.1', port=6379, db=0)
+        self._redis = Redis(host='127.0.0.1', port=6379, db=0)
 
-    def store_token(self, token, page, amount=1):
+    def store_token(self, token: str, page: str, amount=1) -> None:
+        """
+        push the token, page to redis with the amount
+        :param token: a word from the document
+        :param page: path + url of the document
+        :param amount: the times of that token showed in the document
+        :return: None or RuntimeError if not pushed successfully
+        """
         if not self._redis.zincrby(self.prefixed(token), page, amount=amount):
             raise RuntimeError("Error: Failed to storeIndex(token: {}, page: {})!".format(token, page))
 
-    def tokens(self):
-        return (TokenStore.decode(x) for x in self._redis.scan_iter(self.prefixed("*")))
+    def tokens(self) -> Generator:
+        """
+        :return: Generator of all tokens saved in the redis
+        """
+        return (self.decode(x) for x in self._redis.scan_iter(self.prefixed("*")))
 
     def token_occurrence_pairs(self):
         for token in self.tokens():
-            yield token, map(lambda x: (TokenStore.decode(x[0]), x[1]),
+            yield token, map(lambda x: (self.decode(x[0]), x[1]),
                              self._redis.zrange(token, 0, -1, withscores=True))
 
-    def prefixed(self, token):
+    def prefixed(self, token: str) -> str:
+        """
+        prefix token with the format of self._prefix:token
+        :param token: a word from the document
+        :return: formatted token string
+        """
         return "{}:{}".format(self._prefix, token)
 
-    def get_tokens_on_page(self, page):
+    def get_tokens_on_page(self, page: str) -> Generator:
+        """
+        :param page: path + url of the document
+        :return: Generator of all tokens of the page saved in the redis
+        """
         return (key for key, val in self.token_occurrence_pairs() if str(page) in map(lambda x: x[0], val))
 
-    def occurrences(self):
+    def occurrences(self) -> Generator:
         return (pair[1] for pair in self.token_occurrence_pairs())
 
-    def pages_count(self, token):
+    def pages_count(self, token: str) -> int:
+        """
+        :param token: a word from the document
+        :return:
+        """
         return self._redis.zcard(self.prefixed(token))
 
     def tf(self, token: str, page: str) -> float:
         """
-        :param token:
-        :param page:
+        :param token: a word from the document
+        :param page: path + url of the document
         :return: tf value(term frequency) of the specific token in the specific document
         """
         return int(self._redis.zscore(self.prefixed(token), page))
 
     def idf(self, token: str) -> float:
         """
-        :param token:
+        :param token: a word from the document
         :return: idf(inverse document frequency) value of the specific token
         """
         return math.log10(self.get_document_count() / self.pages_count(token))
@@ -70,7 +93,7 @@ class TokenStore:
 
     def zrevrange(self, token: str) -> list:
         """
-        :param token:
+        :param token: a word from the document
         :return: a list of urls contains the specific token and sorted by the token's occurenece
         """
         return self._redis.zrevrange(self.prefixed(token), 0, -1, withscores=True)

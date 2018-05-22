@@ -1,6 +1,3 @@
-import math
-
-
 class SearchEngine:
     def __init__(self, store):
         self._token_store = store
@@ -22,24 +19,24 @@ class SearchEngine:
         """
         try:
             for index, result in enumerate(self.search(query), 1):
-                string = ""
-                docID = result[:result.index(":")]
-                tf = 0
-                idf = 0
-                # print(result)
-                tf = self._token_store.tf(query, result)
-                idf = self._token_store.idf(query)
-                string += " TF: "
-                string += str(tf)
-                string += " IDF: "
-                string += str(round(idf, 2))
-                string += " TF-IDF: "
-                # sth = list(self._token_store.get_tokens_on_page(result))
-                # print(sth)
-                # print(string)
-                string += str(round((1 + math.log10(tf)) * idf), 2)
-                string += " "
-                t = print(index, result, string)
+                # string = ""
+                # docID = result[:result.index(":")]
+                # tf = 0
+                # idf = 0
+                # # print(result)
+                # tf = self._token_store.tf(query, result)
+                # idf = self._token_store.idf(query)
+                # string += " TF: "
+                # string += str(tf)
+                # string += " IDF: "
+                # string += str(round(idf, 2))
+                # string += " TF-IDF: "
+                # # sth = list(self._token_store.get_tokens_on_page(result))
+                # # print(sth)
+                # # print(string)
+                # string += str(round((1 + math.log10(tf)) * idf), 2)
+                # string += " "
+                t = print(index, result)
                 if limit and index == limit:
                     break
             t

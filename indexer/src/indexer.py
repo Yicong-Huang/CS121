@@ -23,5 +23,6 @@ class Indexer:
             self._token_store.store_token(token, document, amount=n)
         self._token_store.increment_document_count()
 
-    def safe_terminate(self):
+    @staticmethod
+    def safe_terminate():
         print(threading.current_thread().getName(), "terminated safely")
