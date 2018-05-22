@@ -4,6 +4,7 @@ from HTML import Html
 
 
 class Indexer:
+    # Todo: differentiate html and other files, could build exceptions in HTML
 
     def __init__(self, token_store):
         self._token_store = token_store

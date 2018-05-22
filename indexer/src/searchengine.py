@@ -1,4 +1,8 @@
 class SearchEngine:
+
+    # Todo: add multiple word search support
+    # Todo: create search for metadata support
+    # Todo: add search based on distance of documents
     def __init__(self, store):
         self._token_store = store
 

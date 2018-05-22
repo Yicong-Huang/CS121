@@ -1,4 +1,5 @@
 class Job:
+    # Todo: add state related functions to job
     def __init__(self, path, url):
         self.path = path
         self.url = url

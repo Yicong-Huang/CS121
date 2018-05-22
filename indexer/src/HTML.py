@@ -10,6 +10,7 @@ class Html:
     will be required as parameters in __init__ method
     """
 
+    # Todo: differentiate html and other files, could build exceptions
     def __init__(self, path, url):
 
         self.path = path

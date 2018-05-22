@@ -5,6 +5,7 @@ from searchengine import SearchEngine
 from tokenstore import TokenStore
 
 
+# Todo: reformat command line interface
 def command_line(arg=None):
     while True:
         raw_query = input("Please type in what do you want to search: ").lower()
