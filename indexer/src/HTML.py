@@ -5,10 +5,12 @@ from bs4 import BeautifulSoup, Comment
 
 
 class Html:
-    '''
+    """
     This class is a Parser to parse HTML files, a path like "0/0" and a url like "https://..."
     will be required as parameters in __init__ method
-    '''
+    """
+
+    # Todo: differentiate html and other files, could build exceptions
     def __init__(self, path, url):
 
         self.path = path
@@ -19,23 +21,23 @@ class Html:
         except:
             print("not html")
 
-    '''
-    This method will filter out unrelated data in a html file and return a Counter
-    of the tokens and the occurence of tokens in the html file
-    '''
     def tokens(self):
+        """
+        This method will filter out unrelated data in a html file and return a Counter
+        of the tokens and the occurrence of tokens in the html file
+        """
         for comment in self.soup.findAll(text=lambda text: isinstance(text, Comment)):
             comment.extract()
 
-	#strip off the content surrounded by <script>
+        # strip off the content surrounded by <script>
         for script in self.soup('script'):
             script.extract()
 
-	#strip off the content surrounded by <link>
+        # strip off the content surrounded by <link>
         for link in self.soup('link'):
             link.extract()
 
-	#strip off the CSS style, which is surrounded by <style>
+        # strip off the CSS style, which is surrounded by <style>
         for style in self.soup("style"):
             style.extract()
 
