@@ -6,6 +6,8 @@ build-nocache: clean
 	@docker build . -t indexer
 	@touch .main
 
+.PHONY: run interactive daemon search redis build clean
+
 run: .main
 	@docker run -it --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump indexer python3 main.py
 
@@ -17,6 +19,9 @@ daemon: .main
 
 search:
 	@docker run -it --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump indexer python3 search.py
+
+redis:
+	@docker run -it --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump indexer redis-cli
 
 build: .main
 
