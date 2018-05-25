@@ -1,8 +1,22 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+/*
+ 	for the input:
+ 		remove special characters
+ 		strip spaces
+ 		split()
+ 		
+ 		ajax.post{
+ 		}
+ 		don't jump page
+ 		pagination (optional)
+ 		
+ 		
+*/
 
+<script src="js/showresult.js"></script>
 <head>
-	<link href="css/CSS.css" rel="stylesheet" type="text/css" media="screen"/>
+	<link href="css/index.css" rel="stylesheet" type="text/css" media="screen"/>
 	<meta content="en-us" http-equiv="Content-Language" />
 	<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
 	<title>Search Engine</title>
@@ -18,10 +32,9 @@
 <div id="welcome" style="left: 37px; top: 51%">Welcome To My Search Engine</div>
 &nbsp;
 
-<form id="search_form" action="" method="post">
-	<input name="Hidden1" type="hidden" />
+<form id="search_form" method="post" action="">
 	<input name="Text" type="text" placeholder="Search here..." style="width: 49%"/>
-	<button type="submit" style="left: 1px; top: -34px">Search</button>
+	<button name="submitBtn" type="submit" style="left: 1px; top: -34px" onclick="handleSearchInput();">Search</button>
 </form>
 
 </body>

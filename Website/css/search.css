@@ -21,21 +21,21 @@ body {
 	text-align: center;
 }
 
-#search_form{
+#result{
 	width:450px;
 	padding:30px;
 	margin: 20px auto 80px auto;
     background: #444;
     background: rgba(0,0,0,.2); 
     }
-#search_form input:focus {
+#result input:focus {
         outline: 0;
         background: #fff;
     }
     
     
     
-#search_form button {
+#result button {
 		overflow: visible;
         position: relative;
         float: right;
@@ -51,4 +51,19 @@ body {
         text-transform: uppercase;
         background: #d83c3c;
     }   
-      
+
+#show_result {
+background:url('../images/background.jpg');
+font-size:30px;
+margin-left:auto;
+margin-right:auto;
+width:600px;
+
+}
+
+#url{
+
+margin-left:20px;
+text-align:left
+
+}
