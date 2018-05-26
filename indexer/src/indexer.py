@@ -22,7 +22,7 @@ class Indexer:
         h = Html(path, url)
         for token, n in h.tokens().items():
             self._token_store.store_token(token, document, amount=n)
-        self._token_store.increment_document_count()
+            self._token_store.increment_document_count()
 
     @staticmethod
     def safe_terminate():

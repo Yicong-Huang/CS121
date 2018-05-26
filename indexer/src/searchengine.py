@@ -22,6 +22,7 @@ class SearchEngine:
         each result will contains "its number" "url", "tf-idf values"
         """
         try:
+            result_list = list()
             for index, result in enumerate(self.search(query), 1):
                 # string = ""
                 # docID = result[:result.index(":")]
@@ -40,9 +41,12 @@ class SearchEngine:
                 # # print(string)
                 # string += str(round((1 + math.log10(tf)) * idf), 2)
                 # string += " "
+
+                result_list.append(result)
                 t = print(index, result)
                 if limit and index == limit:
                     break
             t
+            return result_list
         except:
             print("No Result")
