@@ -8,35 +8,52 @@ from poolqueue import PoolQueue
 
 
 class TokenStore:
-
-    @staticmethod
-    def decode(s):
-        return s.decode('utf-8')
-
-    def __init__(self, prefix='t'):
+    def __init__(self, prefix='token'):
         self._prefix = prefix
-        self._redis = Redis(host='127.0.0.1', port=6379, db=0)
+        self._redis = Redis(host='127.0.0.1', port=6379, db=0, decode_responses=True)
+        self._meta_transform = {'tf': 't', 'weight': 'w', 'all-positions': 'a'}
 
-    def store_token(self, token: str, page: str, amount=1) -> None:
+    def _uglify_meta(self, meta):
+        for fm, to in self._meta_transform.items():
+            meta[to] = meta.pop(fm)
+
+    def _unuglify_meta(self, meta):
+        for fm, to in self._meta_transform.items():
+            meta[fm] = meta.pop(to)
+
+    def store_page_info(self, token, page, meta):
         """
-        push the token, page to redis with the amount
-        :param token: a word from the document
-        :param page: path + url of the document
-        :param amount: the times of that token showed in the document
-        :return: None or RuntimeError if not pushed successfully
+        token: "myToken"
+        page: "0/0"
+        meta:
+            tf: 20
+            weight: 5
+            all-positions: [1,2,3]
         """
-        if not self._redis.zincrby(self.prefixed(token), page, amount=amount):
-            raise RuntimeError("Error: Failed to storeIndex(token: {}, page: {})!".format(token, page))
+        meta_key = self.prefixed('%s:%s' % (token, page))
+        meta['all-positions'] = ','.join(map(str, meta['all-positions']))
+        self._uglify_meta(meta)
+        self._redis.hmset(meta_key, meta)
+
+    def get_page_info(self, token, page):
+        meta_key = self.prefixed('%s:%s' % (token, page))
+        meta = self._redis.hgetall(meta_key)
+        self._unuglify_meta(meta)
+        int_meta_keys = ['tf', 'weight']
+        for int_meta_key in int_meta_keys:
+            meta[int_meta_key] = int(meta[int_meta_key])
+        meta['all-positions'] = list(map(int, meta['all-positions'].split(',')))
+        return meta
 
     def tokens(self) -> Generator:
         """
         :return: Generator of all tokens saved in the redis
         """
-        return (self.decode(x) for x in self._redis.scan_iter(self.prefixed("*")))
+        return (x for x in self._redis.scan_iter(self.prefixed("*")))
 
     def token_occurrence_pairs(self):
         for token in self.tokens():
-            yield token, map(lambda x: (self.decode(x[0]), x[1]),
+            yield token, map(lambda x: (x[0], x[1]),
                              self._redis.zrange(token, 0, -1, withscores=True))
 
     def prefixed(self, token: str) -> str:
@@ -55,7 +72,7 @@ class TokenStore:
         return (key for key, val in self.token_occurrence_pairs() if str(page) in map(lambda x: x[0], val))
 
     def occurrences(self) -> Generator:
-        return (list(pair[1]) for pair in self.token_occurrence_pairs())
+        return (pair[1] for pair in self.token_occurrence_pairs())
 
     def pages_count(self, token: str) -> int:
         """
@@ -124,6 +141,7 @@ class TokenStore:
         :param pipeline:
         :return:
         """
+
         for token in self.tokens():
             for page in pages:
                 print("deleting", page)
@@ -131,6 +149,3 @@ class TokenStore:
 
     def get_idle(self):
         return self._redis.lrange(PoolQueue.IDLE, 0, -1)
-
-    def tf_idf(self, token: str, page: str) -> float:
-        return (1 + math.log10(self.tf(token, page))) * self.idf(token)
