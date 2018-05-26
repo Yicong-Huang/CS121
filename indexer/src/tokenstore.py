@@ -6,27 +6,43 @@ from redis import Redis
 from job import Job
 from poolqueue import PoolQueue
 
-
 class TokenStore:
-
-    @staticmethod
-    def decode(s):
-        return s.decode('utf-8')
-
     def __init__(self, prefix='token'):
         self._prefix = prefix
-        self._redis = Redis(host='127.0.0.1', port=6379, db=0)
+        self._redis = Redis(host='127.0.0.1', port=6379, db=0, decode_responses=True)
+        self._meta_transform = { 'tf': 't', 'weight': 'w', 'all-positions': 'a' }
 
-    def store_token(self, token: str, page: str, amount=1) -> None:
+    def _uglify_meta(self, meta):
+        for fm, to in self._meta_transform.items():
+            meta[to] = meta.pop(fm)
+
+    def _unuglify_meta(self, meta):
+        for fm, to in self._meta_transform.items():
+            meta[fm] = meta.pop(to)
+
+    def store_page_info(self, token, page, meta):
         """
-        push the token, page to redis with the amount
-        :param token: a word from the document
-        :param page: path + url of the document
-        :param amount: the times of that token showed in the document
-        :return: None or RuntimeError if not pushed successfully
+        token: "myToken"
+        page: "0/0"
+        meta:
+            tf: 20
+            weight: 5
+            all-positions: [1,2,3]
         """
-        if not self._redis.zincrby(self.prefixed(token), page, amount=amount):
-            raise RuntimeError("Error: Failed to storeIndex(token: {}, page: {})!".format(token, page))
+        meta_key = self.prefixed('%s:%s' % (token, page))
+        meta['all-positions'] = ','.join(map(str, meta['all-positions']))
+        self._uglify_meta(meta)
+        self._redis.hmset(meta_key, meta)
+
+    def get_page_info(self, token, page):
+        meta_key = self.prefixed('%s:%s' % (token, page))
+        meta = self._redis.hgetall(meta_key)
+        self._unuglify_meta(meta)
+        int_meta_keys = ['tf', 'weight']
+        for int_meta_key in int_meta_keys:
+            meta[int_meta_key] = int(meta[int_meta_key])
+        meta['all-positions'] = map(int, meta['all-positions'].split(','))
+        return meta
 
     def tokens(self) -> Generator:
         """
