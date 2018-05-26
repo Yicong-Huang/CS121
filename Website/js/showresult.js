@@ -10,25 +10,25 @@ function handleSearchInput(){
 
 function handleSearch(){
 	let text = handleSearchInput();
-	handleSearchResult();
+	//handleSearchResult();
 		
-	/*
+	
 	jQuery.ajax{
 		dataType:"json",
-		url:"",
-		method:"GET",
+		url:"api/search?queries="+text,
+		method:"POST",
 		success:(resultData)=>handleSearchResult(resultData)
-	}*/
+	};
 
 	
 }
 
-function handleSearchResult(){
+function handleSearchResult(resultData){
 	let showResultElement = jQuery("#show_result");
 	showResultElement.empty();
 	let rowHtml = "";
-	for(let i = 0; i < 10; i++){
-		rowHtml += "<p id='url'><a href='www.baidu.com'>WWW.baidu.com</a></p>";
+	for(let i = 0; i < min(10,resultData.length); i++){
+		rowHtml += "<p id='url'><a href='" + resultData[i] + "'>" + resultData[i] + "</a></p>";
 	}
 	
 	showResultElement.append(rowHtml);

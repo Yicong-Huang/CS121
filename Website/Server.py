@@ -1,4 +1,4 @@
-from flask import request
+from flask import request,redirect
 from flask_api import FlaskAPI
 
 from searchengine import SearchEngine
@@ -17,9 +17,13 @@ def search():
     """
     curl -X POST http://127.0.0.1:5000/api/search -d  queries="hello world"
     """
-
     queries = request.data.get("queries")
     return search_engine.show_search(queries) or []
+
+@app.route("/api/go",methods=["POST"])
+def go():
+
+    redirect("search.html")
 
 
 if __name__ == "__main__":
