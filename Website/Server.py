@@ -7,7 +7,7 @@ delete next 4 lines if files are in the same folder
 import sys
 import os
 #print(os.path.abspath("..") + "/indexer/src")
-sys.path.append(os.path.abspath(".."))
+sys.path.append(os.path.abspath("..")+"/indexer/src")
 
 
 from searchengine import SearchEngine
