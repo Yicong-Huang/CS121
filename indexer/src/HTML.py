@@ -1,5 +1,5 @@
 import re
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, Generator
 
 from bs4 import BeautifulSoup, Comment
 
@@ -33,7 +33,7 @@ class Html:
             self._is_html = False
             print('not html')
 
-    def token_metas(self):
+    def token_metas(self) -> Generator:
         """
         This method will filter out unrelated data in a html file and return a Counter
         of the tokens and the occurrence of tokens in the html file
@@ -68,12 +68,12 @@ class Html:
             for i, token in enumerate(tokens):
                 positions[token].append(i)
                 self._increment_token_weight(weights, token=token)
-            print(tokens)
-            print(positions, len(positions))
-            print(weights, len(weights))
+            # print(tokens)
+            # print(positions, len(positions))
+            # print(weights, len(weights))
             tfs = Counter(tokens)
             for token, tf in tfs.items():
-                print(token, tf)
+                # print(token, tf)
                 yield (token, {'tf': tf, 'weight': weights[token], 'all-positions': positions[token]})
 
     def parse_title(self, _weight_dict: dict):

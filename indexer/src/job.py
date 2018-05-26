@@ -9,10 +9,8 @@ class Job:
 
     @staticmethod
     def bytes_to_job(job_bytes):
-        j = Job.decode(job_bytes).lstrip("job:")
+        j = job_bytes.lstrip("job:")
         c = j.index(':')
         return Job(j[:c], j[c + 1:])
 
-    @staticmethod
-    def decode(s):
-        return s.decode('utf-8')
+

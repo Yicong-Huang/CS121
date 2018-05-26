@@ -20,9 +20,13 @@ class Indexer:
         document = path + ":" + url
         print(threading.current_thread().getName(), "indexing", path, url)
         h = Html(path, url)
-        for token, metas in h.token_metas():
-            self._token_store.store_token(token, path, amount=n)
-        self._token_store.increment_document_count()
+        token_with_metas = h.token_metas()
+        if token_with_metas:
+            for token, metas in token_with_metas:
+                self._token_store.store_page_info(token, path, metas)
+            self._token_store.increment_document_count()
+        else:
+            raise RuntimeError()
 
     @staticmethod
     def safe_terminate():
