@@ -8,7 +8,7 @@ if __name__ == '__main__':
 
     store.deduplicate()
 
-    pool = WorkerPool(store, workers=16, book_file=open("WEBPAGES_RAW/bookkeeping.json", 'r'))
+    pool = WorkerPool(store, workers=64, book_file=open("WEBPAGES_RAW/bookkeeping.json", 'r'))
 
     # capture signal.SIGINT and handle it with safe termination
     signal.signal(signal.SIGINT, lambda signal, frame: pool.safe_terminate())

@@ -10,7 +10,7 @@ RUN tar xzvf redis-stable.tar.gz && cd redis-stable && make -j8 && make install
 VOLUME /app
 WORKDIR /app
 
-COPY src/requirements.txt .
+COPY indexer .
 
 RUN pip3 install --no-cache -r requirements.txt
 

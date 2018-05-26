@@ -13,12 +13,12 @@ def command_line(arg=None):
         if " --" in raw_query and not arg:
             raw_query, arg = raw_query.split(" --")
 
-        query = re.sub("[^a-z0-9]+", "", raw_query)
+        query = re.sub("[^A-Za-z0-9 ]+", "", raw_query)
 
         if len(query) > 32:
             print("the query is too long, please shorten the search word")
         else:
-            return query, arg
+            return query.split(), arg
 
 
 if __name__ == '__main__':
@@ -28,5 +28,8 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, lambda signal, frame: exit(0))
 
     while True:
-        search_query, arg = command_line()
-        search_engine.show_search(*[search_query, False] if arg == "all" else [search_query])
+        search_queries, arg = command_line()
+
+        search_engine.show_search(*[search_queries, False] if arg == "all" else [search_queries])
+
+

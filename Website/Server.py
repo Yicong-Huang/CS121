@@ -1,17 +1,8 @@
-from flask import request,redirect
+from flask import request
 from flask_api import FlaskAPI
 
-'''
-delete next 4 lines if files are in the same folder
-'''
-import sys
-import os
-#print(os.path.abspath("..") + "/indexer/src")
-sys.path.append(os.path.abspath("..")+"/indexer/src")
-
-
-from searchengine import SearchEngine
-from tokenstore import TokenStore
+from assignment2.indexer.src.searchengine import SearchEngine
+from assignment2.indexer.src.tokenstore import TokenStore
 
 app = FlaskAPI(__name__)
 
@@ -24,10 +15,10 @@ def index():
 @app.route("/api/search", methods=["POST"])
 def search():
     """
-    curl -X POST http://0.0.0.0:5000/api/search -d  queries="hello world"
+    curl -X POST http://127.0.0.1:5000/api/search -d  queries="hello world"
     """
+
     queries = request.data.get("queries")
-    #print(queries)
     return search_engine.show_search(queries) or []
 
 
@@ -35,4 +26,4 @@ if __name__ == "__main__":
     store = TokenStore()
     search_engine = SearchEngine(store)
 
-    app.run(debug=True,host="0.0.0.0")
+    app.run(debug=True)

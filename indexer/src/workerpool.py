@@ -5,6 +5,7 @@ from indexer import Indexer
 from job import Job
 from poolqueue import PoolQueue
 
+
 # Todo: add logging to log workers' activities
 
 class WorkerPool:
