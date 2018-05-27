@@ -1,8 +1,3 @@
-import math
-from collections import Generator
-
-from job import Job
-from poolqueue import PoolQueue
 from redisconnection import RedisConnection
 
 
@@ -30,10 +25,12 @@ class TokenStore:
         meta_key = self.prefixed(token)
         meta['all-positions'] = ','.join(map(str, meta['all-positions']))
         meta = self._uglify_meta(meta)
+        # self._redis.set(meta_key, meta)
         self._redis.hmset(meta_key, {page: meta})
 
     def get_page_info(self, token, page):
         meta_key = self.prefixed(token)
+        # meta = self._redis.get(meta_key)
         meta = self._redis.hget(meta_key, page)
         meta = self._unuglify_meta(meta)
         int_meta_keys = ['tf', 'weight']
@@ -62,19 +59,10 @@ class TokenStore:
         """
         return int(self._redis.get("document_count") or 0)
 
-    def get_idle(self):
-        return self._redis.lrange(PoolQueue.IDLE, 0, -1)
-
-    def get_active(self):
-        return self._redis.lrange(PoolQueue.ACTIVE, 0, -1)
-
-    def get_pages_by_token(self,token)->Generator:
-        '''
-            return a generator of pages that has the specific token
-        '''
-        # page_infos = (x for x in self._redis.scan_iter(self.prefixed(token+":*")))
-        # return map(lambda x:x.split(":")[-1],page_infos)
-        result = {}
-        for key,value in self._redis.hgetall(self.prefixed(token)).items():
-            result[key] = self.get_page_info(token,key)
-        return result
+    def meta_dict(self, meta):
+        meta = self._unuglify_meta(meta)
+        int_meta_keys = ['tf', 'weight']
+        for int_meta_key in int_meta_keys:
+            meta[int_meta_key] = int(meta[int_meta_key])
+        meta['all-positions'] = map(int, meta['all-positions'].split(','))
+        return meta
