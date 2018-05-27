@@ -1,7 +1,7 @@
 import math
 from collections import Generator
 
-from redis import Redis
+from redisconnection import RedisConnection
 
 from job import Job
 from poolqueue import PoolQueue
@@ -10,8 +10,8 @@ from poolqueue import PoolQueue
 class TokenStore:
     def __init__(self, prefix='token'):
         self._prefix = prefix
-        self._redis = Redis(host='127.0.0.1', port=6379, db=0, decode_responses=True)
-        self._meta_transform = {'tf': 't', 'weight': 'w', 'all-positions': 'a'}
+        self._redis = RedisConnection()
+        self._meta_transform = { 'tf': 't', 'weight': 'w', 'all-positions': 'a' }
 
     def _uglify_meta(self, meta):
         for fm, to in self._meta_transform.items():

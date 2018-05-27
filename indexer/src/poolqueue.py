@@ -1,16 +1,14 @@
 import threading
 
-import redis
-
 from job import Job
-
+from redisconnection import RedisConnection
 
 class PoolQueue:
     IDLE = 'idle'
     ACTIVE = 'active'
 
-    def __init__(self, rhost='127.0.0.1', rport=6379, rdb=0, token_store=None):
-        self._redis = redis.Redis(host=rhost, port=rport, db=rdb, decode_responses=True)
+    def __init__(self, token_store=None):
+        self._redis = RedisConnection()
         self._token_store = token_store
 
     def indexer_jobs_completed(self):

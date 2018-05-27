@@ -9,16 +9,19 @@ from poolqueue import PoolQueue
 # Todo: add logging to log workers' activities
 
 class WorkerPool:
-    def __init__(self, token_store, workers, book_file):
+    def __init__(self, token_store, workers, book_file, slave=False):
         self._threads = []
         self._workers = workers
         self._book_file = book_file
         self._work_queue = PoolQueue()
         self._token_store = token_store
+        self._slave = slave
         self._setup(book_file)
         self._running = True
 
     def _setup(self, file):
+        if self._slave == True:
+            return
         # Todo: don't restart if all documents are parsed, as currently it restarts if idle in redis is empty
         if not self._work_queue.indexer_jobs_completed() and not self._token_store.get_idle():
             self._work_queue.enqueue_idles((Job(path, url) for path, url in self._sort_jobs(json.load(file))))
