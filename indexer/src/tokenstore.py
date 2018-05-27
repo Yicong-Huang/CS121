@@ -42,17 +42,6 @@ class TokenStore:
         meta['all-positions'] = map(int, meta['all-positions'].split(','))
         return meta
 
-    def tokens(self) -> Generator:
-        """
-        :return: Generator of all tokens saved in the redis
-        """
-        return (x for x in self._redis.scan_iter(self.prefixed("*")))
-
-    def token_occurrence_pairs(self):
-        for token in self.tokens():
-            yield token, map(lambda x: (x[0], x[1]),
-                             self._redis.zrange(token, 0, -1, withscores=True))
-
     def prefixed(self, token: str) -> str:
         """
         prefix token with the format of self._prefix:token
@@ -60,30 +49,6 @@ class TokenStore:
         :return: formatted token string
         """
         return "{}:{}".format(self._prefix, token)
-
-    def get_tokens_on_page(self, page: str) -> Generator:
-        """
-        :param page: path + url of the document
-        :return: Generator of all tokens of the page saved in the redis
-        """
-        return (key for key, val in self.token_occurrence_pairs() if str(page) in map(lambda x: x[0], val))
-
-    def occurrences(self) -> Generator:
-        return (pair[1] for pair in self.token_occurrence_pairs())
-
-    def pages_count(self, token: str) -> int:
-        """
-        :param token: a word from the document
-        :return:
-        """
-        return self._redis.zcard(self.prefixed(token))
-
-    def idf(self, token: str) -> float:
-        """
-        :param token: a word from the document
-        :return: idf(inverse document frequency) value of the specific token
-        """
-        return math.log10(self.get_document_count() / self.pages_count(token))
 
     def increment_document_count(self) -> None:
         """
@@ -99,6 +64,9 @@ class TokenStore:
 
     def get_idle(self):
         return self._redis.lrange(PoolQueue.IDLE, 0, -1)
+
+    def get_active(self):
+        return self._redis.lrange(PoolQueue.ACTIVE, 0, -1)
 
     def get_pages_by_token(self,token)->Generator:
         '''
