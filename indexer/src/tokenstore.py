@@ -1,29 +1,22 @@
 import math
 from collections import Generator
 
-from redisconnection import RedisConnection
-
 from job import Job
 from poolqueue import PoolQueue
+from redisconnection import RedisConnection
 
-import ast
 
 class TokenStore:
-    def __init__(self, prefix='token'):
+    def __init__(self, prefix='t'):
         self._prefix = prefix
         self._redis = RedisConnection()
-        self._meta_transform = { 'tf': 't', 'weight': 'w', 'all-positions': 'a' }
 
     def _uglify_meta(self, meta):
-        for fm, to in self._meta_transform.items():
-            meta[to] = meta.pop(fm)
-        return str(meta)
+        return "/".join(map(str, [meta['tf'], meta['weight'], meta['all-positions']]))
 
-    def _unuglify_meta(self, meta):
-        meta = ast.literal_eval(meta)
-        for fm, to in self._meta_transform.items():
-            meta[fm] = meta.pop(to)
-        return meta
+    def _unuglify_meta(self, meta_str):
+
+        return dict(zip(['tf', 'weight', 'all-position'], meta_str.split('/')))
 
     def store_page_info(self, token, page, meta):
         """
@@ -34,7 +27,7 @@ class TokenStore:
             weight: 5
             all-positions: [1,2,3]
         """
-        meta_key = self.prefixed('%s:%s' % (token, page))
+        meta_key = self.prefixed('{token}:{page}'.format(token=token, page=page))
         meta['all-positions'] = ','.join(map(str, meta['all-positions']))
         meta = self._uglify_meta(meta)
         self._redis.set(meta_key, meta)
