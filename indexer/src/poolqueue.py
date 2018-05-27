@@ -11,6 +11,9 @@ class PoolQueue:
         self._redis = RedisConnection()
         self._token_store = token_store
 
+    def has_active_job(self):
+        return len(self._redis.lrange(PoolQueue.ACTIVE, 0, 0)) != 0
+
     def indexer_jobs_completed(self):
         return self._redis.get("indexer:jobs:completed") == 'True'
 

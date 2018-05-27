@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 
 from indexer import Indexer
 from job import Job
@@ -51,5 +52,17 @@ class WorkerPool:
         for thread in self._threads:
             thread.join()
 
+
     def safe_terminate(self):
         self._running = False
+
+        def check_active():
+            while self._work_queue.has_active_job():
+                print("Still have active jobs...")
+                time.sleep(1)
+
+        active_jobs_checker = threading.Thread(target=check_active)
+        active_jobs_checker.daemon = True
+        active_jobs_checker.start()
+        active_jobs_checker.join()
+        print("Terminating now.")

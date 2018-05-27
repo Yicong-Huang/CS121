@@ -114,38 +114,6 @@ class TokenStore:
         """
         return self._redis.zrevrange(self.prefixed(token), 0, -1, withscores=True)
 
-    def deduplicate(self) -> None:
-        """
-        delete unfinished documents from _redis to prevent duplications.
-        :return: None
-        """
-        print("Searching for unfinished jobs...")
-        active_jobs = list(map(Job.bytes_to_job, self._redis.lrange(PoolQueue.ACTIVE, 0, -1)))
-        if not active_jobs:
-            print("No unfinished jobs!")
-            return
-        pipeline = self._redis.pipeline()
-        self.delete_pages((job.path for job in active_jobs), pipeline)
-
-        for _ in active_jobs:
-            self._redis.rpoplpush(PoolQueue.ACTIVE, PoolQueue.IDLE)
-        self._redis.delete(PoolQueue.ACTIVE)
-        pipeline.execute()
-        print("Done deduplicating.")
-
-    def delete_pages(self, pages: Generator, pipeline):
-        """
-        delete unfinished pages
-        :param pages:
-        :param pipeline:
-        :return:
-        """
-
-        for token in self.tokens():
-            for page in pages:
-                print("deleting", page)
-                pipeline.zrem(token, page)
-
     def get_idle(self):
         return self._redis.lrange(PoolQueue.IDLE, 0, -1)
 

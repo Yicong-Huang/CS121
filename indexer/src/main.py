@@ -8,8 +8,6 @@ import os
 if __name__ == '__main__':
     store = TokenStore()
     slave_mode = (os.environ.get('INDEXER_SLAVE_MODE', '') != '')
-    if not slave_mode:
-        store.deduplicate()
 
     pool = WorkerPool(store, workers=64, book_file=open("WEBPAGES_RAW/bookkeeping.json", 'r'), slave=slave_mode)
 
