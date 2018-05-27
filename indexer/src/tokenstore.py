@@ -6,6 +6,7 @@ from redisconnection import RedisConnection
 from job import Job
 from poolqueue import PoolQueue
 
+import ast
 
 class TokenStore:
     def __init__(self, prefix='token'):
@@ -16,10 +17,13 @@ class TokenStore:
     def _uglify_meta(self, meta):
         for fm, to in self._meta_transform.items():
             meta[to] = meta.pop(fm)
+        return str(meta)
 
     def _unuglify_meta(self, meta):
+        meta = ast.literal_eval(meta)
         for fm, to in self._meta_transform.items():
             meta[fm] = meta.pop(to)
+        return meta
 
     def store_page_info(self, token, page, meta):
         """
@@ -32,13 +36,13 @@ class TokenStore:
         """
         meta_key = self.prefixed('%s:%s' % (token, page))
         meta['all-positions'] = ','.join(map(str, meta['all-positions']))
-        self._uglify_meta(meta)
-        self._redis.hmset(meta_key, meta)
+        meta = self._uglify_meta(meta)
+        self._redis.set(meta_key, meta)
 
     def get_page_info(self, token, page):
         meta_key = self.prefixed('%s:%s' % (token, page))
-        meta = self._redis.hgetall(meta_key)
-        self._unuglify_meta(meta)
+        meta = self._redis.get(meta_key)
+        meta = self._unuglify_meta(meta)
         int_meta_keys = ['tf', 'weight']
         for int_meta_key in int_meta_keys:
             meta[int_meta_key] = int(meta[int_meta_key])
