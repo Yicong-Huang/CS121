@@ -20,21 +20,6 @@ def command_line(arg=None):
         else:
             return query.split(), arg
 
-def score_position(first:list,second:list,*args):
-    params = [first,second,*args]
-    score = 0
-    if args:
-        for pos in first:
-            result = (pos+1) in second
-            for i  in range(len(args)):
-                result &= (pos + i+2) in args[i]
-            score+=result
-        return score + score_position(*params[:len(params)-1]) + score_position(*params[1:])
-    else:
-        for pos in first:
-            score+=  (pos+1) in second
-        return score
-
 
 if __name__ == '__main__':
     store = TokenStore()
@@ -44,7 +29,4 @@ if __name__ == '__main__':
 
     while True:
         search_queries, arg = command_line()
-
-        search_engine.show_search(*[search_queries, False] if arg == "all" else [search_queries])
-
-
+        search_engine.search(*[search_queries, False] if arg == "all" else [search_queries])
