@@ -18,14 +18,14 @@ class Html:
         txt         pass
         makefile    pass
 
-        jpg         nopass
+        jpg         no pass
         """
 
         self.path = path
         self.url = url
 
         self.data = ''.join(open("./WEBPAGES_RAW/" + path, encoding="utf-8").readlines()).lower()
-        # self.data = ''.join(open("./test.html", encoding="utf-8").readlines()).lower()
+
         try:
             self._is_html = True
             self.soup = BeautifulSoup(self.data, 'html.parser')
@@ -68,12 +68,8 @@ class Html:
             for i, token in enumerate(tokens):
                 positions[token].append(i)
                 self._increment_token_weight(weights, token=token)
-            # print(tokens)
-            # print(positions, len(positions))
-            # print(weights, len(weights))
             tfs = Counter(tokens)
             for token, tf in tfs.items():
-                # print(token, tf)
                 yield (token, {'tf': tf, 'weight': weights[token], 'all-positions': positions[token]})
 
     def parse_title(self, _weight_dict: dict):
@@ -92,8 +88,3 @@ class Html:
             _weight_dict[token] += weight
         else:
             raise RuntimeError("no token or tag specified")
-
-
-if __name__ == '__main__':
-    h = Html('0/2', "fano.ics.uci.edu/cites/Author/Murray-Sherk.html")
-    print(list(h.token_metas()))
