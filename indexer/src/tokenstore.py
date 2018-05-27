@@ -16,7 +16,7 @@ class TokenStore:
 
     def _unuglify_meta(self, meta_str):
 
-        return dict(zip(['tf', 'weight', 'all-position'], meta_str.split('/')))
+        return dict(zip(['tf', 'weight', 'all-positions'], meta_str.split('/')))
 
     def store_page_info(self, token, page, meta):
         """
@@ -146,3 +146,19 @@ class TokenStore:
 
     def get_idle(self):
         return self._redis.lrange(PoolQueue.IDLE, 0, -1)
+
+
+    def get_pages_by_token(self,token)->Generator:
+        '''
+            return a generator of pages that has the specific token
+        '''
+	    return map(lambda x:x.split(":")[-1],list(self._redis.keys("t:"+ token + ":*")))
+
+    def get_all_page_infos(self,token)->dict:
+        '''
+            return all information of the pages that has the specific token
+        '''
+        result = {}
+        for page in self.get_pages_by_token(token):
+            result[page] = self.get_page_info(token,page)
+        return result
