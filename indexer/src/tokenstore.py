@@ -154,8 +154,14 @@ class TokenStore:
         '''
             return a generator of pages that has the specific token
         '''
-        page_infos = (x for x in self._redis.scan_iter(self.prefixed(token+":*")))
-        return map(lambda x:x.split(":")[-1],page_infos)
+        # page_infos = (x for x in self._redis.scan_iter(self.prefixed(token+":*")))
+        # return map(lambda x:x.split(":")[-1],page_infos)
+        result = {}
+        for key,value in self._redis.hgetall(self.prefixed(token)).items():
+            result[key] = self.get_page_info(token,key)
+        return result
+        
+
 
     def get_all_page_infos(self,token)->dict:
         '''
