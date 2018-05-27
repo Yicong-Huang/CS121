@@ -23,8 +23,7 @@ class WorkerPool:
     def _setup(self, file):
         if self._slave:
             return
-        # Todo: don't restart if all documents are parsed, as currently it restarts if idle in redis is empty
-        if not self._work_queue.indexer_jobs_completed() and not self._token_store.get_idle() and not self._token_store.get_active():
+        if not self._work_queue.indexer_jobs_completed() and not self._work_queue.get_idle() and not self._work_queue.get_active():
             self._work_queue.enqueue_idles((Job(path, url) for path, url in self._sort_jobs(json.load(file))))
 
         for _ in self._token_store.get_active():
@@ -48,14 +47,13 @@ class WorkerPool:
         self._threads = []
         for i in range(self._workers):
             t = threading.Thread(target=self._worker)
-            t.setName('Worker ' + str(i+1))
+            t.setName('Worker ' + str(i + 1))
             t.daemon = True
             t.start()
             self._threads.append(t)
 
         for thread in self._threads:
             thread.join()
-
 
     def safe_terminate(self):
         self._running = False
