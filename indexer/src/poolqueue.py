@@ -11,6 +11,12 @@ class PoolQueue:
         self._redis = RedisConnection()
         self._token_store = token_store
 
+    def get_idle(self):
+        return self._redis.lrange(PoolQueue.IDLE, 0, -1)
+
+    def get_active(self):
+        return self._redis.lrange(PoolQueue.ACTIVE, 0, -1)
+
     def has_active_job(self):
         return len(self._redis.lrange(PoolQueue.ACTIVE, 0, 0)) != 0
 
