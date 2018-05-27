@@ -78,14 +78,6 @@ class TokenStore:
         """
         return self._redis.zcard(self.prefixed(token))
 
-    def tf(self, token: str, page: str) -> float:
-        """
-        :param token: a word from the document
-        :param page: path + url of the document
-        :return: tf value(term frequency) of the specific token in the specific document
-        """
-        return int(self._redis.zscore(self.prefixed(token), page))
-
     def idf(self, token: str) -> float:
         """
         :param token: a word from the document
@@ -105,16 +97,8 @@ class TokenStore:
         """
         return int(self._redis.get("document_count") or 0)
 
-    def zrevrange(self, token: str) -> list:
-        """
-        :param token: a word from the document
-        :return: a list of urls contains the specific token and sorted by the token's occurenece
-        """
-        return self._redis.zrevrange(self.prefixed(token), 0, -1, withscores=True)
-
     def get_idle(self):
         return self._redis.lrange(PoolQueue.IDLE, 0, -1)
-
 
     def get_pages_by_token(self,token)->Generator:
         '''
@@ -125,15 +109,4 @@ class TokenStore:
         result = {}
         for key,value in self._redis.hgetall(self.prefixed(token)).items():
             result[key] = self.get_page_info(token,key)
-        return result
-
-
-
-    def get_all_page_infos(self,token)->dict:
-        '''
-            return all information of the pages that has the specific token
-        '''
-        result = {}
-        for page in self.get_pages_by_token(token):
-            result[page] = self.get_page_info(token,page)
         return result
