@@ -30,18 +30,16 @@ class TokenStore:
         meta_key = self.prefixed(token)
         meta['all-positions'] = ','.join(map(str, meta['all-positions']))
         meta = self._uglify_meta(meta)
-        # self._redis.set(meta_key, meta)
         self._redis.hmset(meta_key, {page: meta})
 
     def get_page_info(self, token, page):
         meta_key = self.prefixed(token)
-        # meta = self._redis.get(meta_key)
         meta = self._redis.hget(meta_key, page)
         meta = self._unuglify_meta(meta)
         int_meta_keys = ['tf', 'weight']
         for int_meta_key in int_meta_keys:
             meta[int_meta_key] = int(meta[int_meta_key])
-        meta['all-positions'] = list(map(int, meta['all-positions'].split(',')))
+        meta['all-positions'] = map(int, meta['all-positions'].split(','))
         return meta
 
     def tokens(self) -> Generator:
@@ -128,7 +126,7 @@ class TokenStore:
         for key,value in self._redis.hgetall(self.prefixed(token)).items():
             result[key] = self.get_page_info(token,key)
         return result
-        
+
 
 
     def get_all_page_infos(self,token)->dict:
