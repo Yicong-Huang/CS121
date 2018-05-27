@@ -23,10 +23,11 @@ class WorkerPool:
     def _setup(self, file):
         if self._slave:
             return
-        if not self._work_queue.indexer_jobs_completed() and not self._work_queue.get_idle() and not self._work_queue.get_active():
+        if not any([self._work_queue.indexer_jobs_completed(), self._work_queue.get_idle(),
+                    self._work_queue.get_active()]):
             self._work_queue.enqueue_idles((Job(path, url) for path, url in self._sort_jobs(json.load(file))))
 
-        for _ in self._token_store.get_active():
+        for _ in self._work_queue.get_active():
             self._token_store._redis.rpoplpush(PoolQueue.ACTIVE, PoolQueue.IDLE)
 
     @staticmethod

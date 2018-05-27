@@ -3,6 +3,7 @@ import threading
 from job import Job
 from redisconnection import RedisConnection
 
+
 class PoolQueue:
     IDLE = 'idle'
     ACTIVE = 'active'
