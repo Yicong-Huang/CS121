@@ -54,10 +54,9 @@ class TokenStore:
         """
         return int(self._redis.get("document_count") or 0)
 
-    def meta_dict(self, meta):
-        meta = self._unuglify_meta(meta)
-        int_meta_keys = ['tf', 'weight']
-        for int_meta_key in int_meta_keys:
-            meta[int_meta_key] = int(meta[int_meta_key])
+    def meta_dict(self, meta_str):
+        meta = self._unuglify_meta(meta_str)
+        meta['weight'] = int(meta['weight'])
+        meta['tf'] = len(meta['all-positions'])
         meta['all-positions'] = map(int, meta['all-positions'].split(','))
         return meta
