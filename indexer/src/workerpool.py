@@ -21,6 +21,7 @@ class WorkerPool:
         self._mode = mode
         self._setup(book_file)
         self._running = True
+        self._running_thread = None
 
     def _reenqueue_active(self):
         for _ in self._work_queue.get_active():
@@ -54,11 +55,11 @@ class WorkerPool:
         def listener():
             pubsub = self._redis.pubsub()
             pubsub.subscribe('indexer:clients')
-            while self._running:
-                for message in pubsub.listen():
-                    if message.get('data', '') == 'TERMINATE':
-                        print("!!! RECEIVED TERMINATE FROM SERVER !!!")
-                        self._running = False
+            for message in pubsub.listen():
+                if message.get('data', '') == 'TERMINATE':
+                    print("!!! RECEIVED TERMINATE FROM SERVER !!!")
+                    self.safe_terminate()
+                    break
 
         listener_thread = threading.Thread(target=listener)
         listener_thread.daemon = True
@@ -81,9 +82,8 @@ class WorkerPool:
                     self._reenqueue_active()
                 time.sleep(1)
 
-        server_thread = threading.Thread(target=server)
-        server_thread.start()
-        server_thread.join()
+        self._running_thread = threading.Thread(target=server)
+        self._running_thread.start()
 
     def execute(self):
         print('Executing as ' + self._mode)
@@ -106,11 +106,16 @@ class WorkerPool:
                     time.sleep(1)
             elif self._mode == 'CLIENT':
                 for i, thread in enumerate(self._threads):
-                    print("Joined '%s', still waiting for %d workers" % (thread.getName(), self._workers - (i+1)))
+                    info = (thread.getName(), self._workers - (i+1))
+                    print("Attempting to join '%s', still waiting for %d workers..." % info)
                     thread.join()
+                    print("Joined '%s', still waiting for %d workers" % info)
 
         terminator_thread = threading.Thread(target=terminator)
         terminator_thread.start()
         terminator_thread.join()
+
+        if self._running_thread:
+            self._running_thread.join()
 
         print("Terminating %s now." % self._mode)
