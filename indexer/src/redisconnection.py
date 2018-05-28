@@ -1,9 +1,26 @@
 import os
-from redis import StrictRedis
+from redis import StrictRedis, ConnectionPool
 
-def RedisConnection():
-    host = os.getenv('INDEXER_REDIS_HOST', '')
-    host = host if len(host) > 0 else '127.0.0.1'
-    port = os.getenv('INDEXER_REDIS_PORT', '')
-    port = int(port) if len(port) > 0 else 6379
-    return StrictRedis(host=host, port=port, db=0, decode_responses=True)
+class RedisConnection:
+    __instance = None
+
+    @staticmethod
+    def shared():
+        if RedisConnection.__instance == None:
+            RedisConnection()
+        return RedisConnection.__instance
+
+    def __init__(self):
+        host = os.getenv('INDEXER_REDIS_HOST', '')
+        host = host if len(host) > 0 else '127.0.0.1'
+        port = os.getenv('INDEXER_REDIS_PORT', '')
+        port = int(port) if len(port) > 0 else 6379
+        self.pool = ConnectionPool(host=host, port=port, db=0, decode_responses=True)
+
+        if RedisConnection.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            RedisConnection.__instance = self
+
+    def getConnection(self):
+        return StrictRedis(connection_pool=self.pool)

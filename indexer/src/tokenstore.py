@@ -4,7 +4,7 @@ from redisconnection import RedisConnection
 class TokenStore:
     def __init__(self, prefix='t'):
         self._prefix = prefix
-        self._redis = RedisConnection()
+        self._redis = RedisConnection.shared().getConnection()
 
     def _uglify_meta(self, meta):
         return "/".join(map(str, [meta['weight'], meta['all-positions']]))

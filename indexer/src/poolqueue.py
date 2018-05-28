@@ -9,7 +9,7 @@ class PoolQueue:
     ACTIVE = 'active'
 
     def __init__(self, token_store=None):
-        self._redis = RedisConnection()
+        self._redis = RedisConnection.shared().getConnection()
         self._token_store = token_store
 
     def get_idle(self):

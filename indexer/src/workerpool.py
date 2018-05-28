@@ -15,7 +15,7 @@ class WorkerPool:
         self._threads = []
         self._workers = workers
         self._book_file = book_file
-        self._redis = RedisConnection()
+        self._redis = RedisConnection.shared().getConnection()
         self._work_queue = PoolQueue()
         self._token_store = token_store
         self._mode = mode
