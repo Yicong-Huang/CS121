@@ -1,5 +1,5 @@
 import re
-from collections import Counter, defaultdict, Generator
+from collections import defaultdict, Generator
 
 from bs4 import BeautifulSoup, Comment
 
@@ -68,9 +68,7 @@ class Html:
             for i, token in enumerate(tokens):
                 positions[token].append(i)
                 self._increment_token_weight(weights, token=token)
-            tfs = Counter(tokens)
-            for token, tf in tfs.items():
-                yield (token, {'tf': tf, 'weight': weights[token], 'all-positions': positions[token]})
+                yield (token, {'weight': weights[token], 'all-positions': positions[token]})
 
     def parse_title(self, _weight_dict: dict):
         self._increment_token_weight(_weight_dict, tag="title", weight=4)

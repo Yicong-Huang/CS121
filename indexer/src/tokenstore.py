@@ -7,11 +7,10 @@ class TokenStore:
         self._redis = RedisConnection()
 
     def _uglify_meta(self, meta):
-        return "/".join(map(str, [meta['tf'], meta['weight'], meta['all-positions']]))
+        return "/".join(map(str, [meta['weight'], meta['all-positions']]))
 
     def _unuglify_meta(self, meta_str):
-
-        return dict(zip(['tf', 'weight', 'all-positions'], meta_str.split('/')))
+        return dict(zip(['weight', 'all-positions'], meta_str.split('/')))
 
     def store_page_info(self, token, page, meta):
         """
@@ -22,21 +21,17 @@ class TokenStore:
             weight: 5
             all-positions: [1,2,3]
         """
-        meta_key = self.prefixed(token)
+
         meta['all-positions'] = ','.join(map(str, meta['all-positions']))
         meta = self._uglify_meta(meta)
-        # self._redis.set(meta_key, meta)
-        self._redis.hmset(meta_key, {page: meta})
+        self._redis.hmset(self.prefixed(token), {page: meta})
 
     def get_page_info(self, token, page):
-        meta_key = self.prefixed(token)
-        # meta = self._redis.get(meta_key)
-        meta = self._redis.hget(meta_key, page)
-        meta = self._unuglify_meta(meta)
-        int_meta_keys = ['tf', 'weight']
-        for int_meta_key in int_meta_keys:
-            meta[int_meta_key] = int(meta[int_meta_key])
+        meta = self._unuglify_meta(self._redis.hget(self.prefixed(token), page))
+
+        meta['weight'] = int(meta['weight'])
         meta['all-positions'] = map(int, meta['all-positions'].split(','))
+        meta['tf'] = len(meta['all-positions'])
         return meta
 
     def prefixed(self, token: str) -> str:
