@@ -7,9 +7,9 @@ import os
 
 if __name__ == '__main__':
     store = TokenStore()
-    slave_mode = (os.environ.get('INDEXER_SLAVE_MODE', '') != '')
+    indexer_mode = os.environ.get('INDEXER_MODE', 'SERVER')
 
-    pool = WorkerPool(store, workers=64, book_file=open("WEBPAGES_RAW/bookkeeping.json", 'r'), slave=slave_mode)
+    pool = WorkerPool(store, workers=32, book_file=open("WEBPAGES_RAW/bookkeeping.json", 'r'), mode=indexer_mode)
 
     # capture signal.SIGINT and handle it with safe termination
     signal.signal(signal.SIGINT, lambda signal, frame: pool.safe_terminate())

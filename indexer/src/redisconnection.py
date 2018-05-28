@@ -1,7 +1,9 @@
 import os
-from redis import Redis
+from redis import StrictRedis
 
 def RedisConnection():
-    host = os.environ.get('INDEXER_REDIS_HOST', '127.0.0.1')
-    port = int(os.environ.get('INDEXER_REDIS_PORT', 6379))
-    return Redis(host=host, port=port, db=0, decode_responses=True)
+    host = os.getenv('INDEXER_REDIS_HOST')
+    host = host if len(host) > 0 else '127.0.0.1'
+    port = os.getenv('INDEXER_REDIS_PORT')
+    port = int(port) if len(port) > 0 else 6379
+    return StrictRedis(host=host, port=port, db=0, decode_responses=True)

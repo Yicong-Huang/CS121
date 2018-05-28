@@ -1,13 +1,11 @@
 #!/bin/bash
 
-if [[ -z ${INDEXER_REDIS_HOST} ]] && [[ -z ${INDEXER_REDIS_PORT} ]]; then
+if [[ -z ${INDEXER_NO_REDIS} ]]; then
     # Start redis
     eval /redis/redis_init_script start
 
     # Wait for redis to load first
     until [ `redis-cli ping | grep -c PONG` = 1 ]; do echo "Waiting 1s for Redis to load"; sleep 1; done
-else
-    export INDEXER_SLAVE_MODE=true
 fi
 
 # Run CMD passed by docker

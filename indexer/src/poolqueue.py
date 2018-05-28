@@ -18,6 +18,9 @@ class PoolQueue:
     def get_active(self):
         return self._redis.lrange(PoolQueue.ACTIVE, 0, -1)
 
+    def has_idle_job(self):
+        return len(self._redis.lrange(PoolQueue.IDLE, 0, 0)) != 0
+
     def has_active_job(self):
         return len(self._redis.lrange(PoolQueue.ACTIVE, 0, 0)) != 0
 
@@ -43,4 +46,4 @@ class PoolQueue:
 
     def complete(self, job, queue=ACTIVE):
         print(threading.current_thread().getName(), "completed Job: %s" % job.path)
-        self._redis.lrem(queue, job)
+        self._redis.lrem(queue, 1, job)
