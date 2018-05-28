@@ -68,6 +68,8 @@ class Html:
             for i, token in enumerate(tokens):
                 positions[token].append(i)
                 self._increment_token_weight(weights, token=token)
+
+            for token in set(tokens):
                 yield (token, {'weight': weights[token], 'all-positions': positions[token]})
 
     def parse_title(self, _weight_dict: dict):
