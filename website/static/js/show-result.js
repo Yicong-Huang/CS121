@@ -1,55 +1,103 @@
+function handleSearchInput() {
+    console.log("in search");
+    let textlist = $('#search-query').val().trim().split(" ");
+    textlist = textlist.map(text => {
+        return text.replace(/[.,\/#!$%^&*;:{}=\-_`~()]/g, "")
+    });
+    console.log(textlist);
 
-function handleSearchInput(){
-	//get the search input and get rid of the 
-	let textlist = document.getElementsByName("Text")[0].value.split(" ");
-	textlist = textlist.map(text => {return text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")});
-	console.log(textlist);
-
-	return textlist.join(',');
+    return textlist.join(',');
 }
 
 
-function handleSearch(){
-	let text = handleSearchInput();
-	//handleSearchResult();
-	console.log(text);
+function handleSearch() {
+    let text = handleSearchInput();
+    console.log(text);
 
-	jQuery.ajax({
-		dataType:"json",
-		data:{'queries':text},
-		url:"api/search",
-		method:"POST",
-		success:(resultData)=>handleSearchResult(resultData)
-	});
+    jQuery.ajax({
+        dataType: "json",
+        data: {'queries': text},
+        url: "api/search",
+        method: "POST",
+        success: (resultData) => handleSearchResult(resultData)
+    });
 }
 
-function handleSearchResult(resultData){
-	//show the search result
-	console.log(resultData);
+function handleSearchResult(resultData) {
+    //show the search result
+    console.log(resultData);
 
-	let showResultElement = jQuery("#show_result");
-	showResultElement.empty();
-	let rowHtml = "";
-	for(let i = 0; i < Math.min(10,resultData.length); i++){
-		rowHtml += "<p id='url'><a href='" + resultData[i] + "'>" + resultData[i] + "</a></p>";
-	}
+    let showResultElement = jQuery("#show_result");
+    showResultElement.empty();
 
-	showResultElement.append(rowHtml);
+    if (resultData.length == 0) {
 
-}
+        template =
+            $("<div>", {
+                class: "container",
+                html: $("<div>", {
+                    class:
+                        "row justify-content-empty-center mb-5 ",
+                    html: $("<div>", {
+                        class: "col-centered",
+                        html: $("<div>", {
 
-function getParameterByName(target) {
-        // Get request URL
-        let url = window.location.href;
-        // Encode target parameter name to url encoding
-        target = target.replace(/[\[\]]/g, "\\$&");
+                            class: "card",
+                            html: $("<div>", {
+                                class: "card-block",
+                                html: $("<div>", {
+                                    class: "card-text",
+                                    text: "No Result"
+                                })
+                            })
+                        }),
+                        style: "width:80%; margin-left :10%"
+                    }),
 
-        // Ues regular expression to find matched parameter value
-        let regex = new RegExp("[?&]" + target + "(=([^&#]*)|&|#|$)"),
-            results = regex.exec(url);
-        if (!results) return null;
-        if (!results[2]) return '';
 
-        // Return the decoded parameter value
-        return decodeURIComponent(results[2].replace(/\+/g, " "));
+                })
+            });
+        showResultElement.append(template);
+
+    } else {
+        let template;
+        for (let i = 0; i < Math.min(10, resultData.length); i++) {
+
+            template =
+                $("<div>", {
+                    class: "container",
+                    html: $("<div>", {
+                        class:
+                            "row justify-content-empty-center mb-5 ",
+                        html: $("<div>", {
+                            class: "col-centered",
+                            html: $("<div>", {
+
+                                class: "card",
+                                html: $("<div>", {
+                                    class: "card-block",
+                                    html: $("<div>", {
+                                        class: "card-text",
+                                        html: $("<a>", {href: resultData[i], text: resultData[i]})
+                                    })
+                                })
+                            }),
+                            style: "width:80%; margin-left :10%"
+                        }),
+
+
+                    })
+                });
+            showResultElement.append(template);
+        }
     }
+}
+
+function handleEnter(event) {
+    if (event.keyCode === 13) {
+
+        handleSearch();
+    }
+}
+
+

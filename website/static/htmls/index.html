@@ -1,35 +1,45 @@
 ﻿<!DOCTYPE html>
 <html>
 &nbsp;
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-<script src="../static/js/show-result.js?"></script>
+
 <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="../static/js/show-result.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <!--<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>-->
+
     <link href="../static/css/search.css" rel="stylesheet" type="text/css" media="screen"/>
+
+
     <meta content="en-us" http-equiv="Content-Language"/>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
     <title>Search Engine</title>
-    <style type="text/css">
-        .auto-style1 {
-            margin-top: 0px;
-        }
-    </style>
+
 </head>
 
 <body>
 
+<img src="../static/images/logo.png" style="width: 30%;height:15%;margin-left: 35%;"/>
+<div class="container">
+    <div class="row">
+        <div id="custom-search-input">
+            <div class="input-group col-md-12">
+                <input type="text" class="  search-query form-control" id="search-query" placeholder="Search"
+                       onkeyup="handleEnter(event)"/>
+                <span class="input-group-btn">
+                                    <button class="btn btn-danger" type="button" onclick="handleSearch();">
+                                        <span class=" glyphicon glyphicon-search"></span>
+                                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
 
-<script>
+<div id="show_result">
 
-
-</script>
-
-<iframe width="0" height="0" frameborder="0" name="dummyframe" id="dummyframe"></iframe>
-<form id="result" target="dummyframe">
-    <input name="Text" type="text" placeholder="" style="width: 49%"/>
-    <button name="submitBtn" type="submit" style="left: 1px; top: -34px" onclick="handleSearch();">Search</button>
-</form>
-
-<div id="show_result"></div>
+</div>
 
 </body>
 
