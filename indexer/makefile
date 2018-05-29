@@ -15,10 +15,10 @@ search: .main
 	docker run -it --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump indexer python3 search.py
 
 redis: .main
-	docker run -it --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump indexer redis-cli
+	docker run -it --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump -p 6379:6379 indexer redis-cli
 
 redis-daemon: .main
-	docker run -d --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump -p 6379:6379 indexer redis-cli
+	docker run -d --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump -p 6379:6379 indexer tail -f /dev/null
 
 client: .main
 	docker run -it --rm -v "`pwd`/src":/app -v "`pwd`/redis-dump":/redis-dump -e INDEXER_NO_REDIS=True -e INDEXER_MODE=CLIENT -e INDEXER_REDIS_HOST=$(INDEXER_REDIS_HOST) -e INDEXER_REDIS_PORT=$(INDEXER_REDIS_PORT) indexer python3 main.py
