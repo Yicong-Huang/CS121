@@ -61,9 +61,9 @@ class Html:
             for style in self.soup("style"):
                 style.extract()
 
-            # print(re.findall("[a-zA-Z\d]+", self.soup.get_text(strip=True)))
-            tokens = ' '.join(self.soup.get_text().split())
-            tokens = re.findall("[a-zA-Z\d]+", tokens)
+            # find all text nodes and choose the ones that is a word
+            tokens = self.soup.get_text(separator=" ", strip=True)
+            tokens = re.findall("[\w']+", tokens)
 
             for i, token in enumerate(tokens):
                 positions[token].append(i)
