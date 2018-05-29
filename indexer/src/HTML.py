@@ -63,7 +63,7 @@ class Html:
 
             # find all text nodes and choose the ones that is a word
             tokens = self.soup.get_text(separator=" ", strip=True)
-            tokens = re.findall("[\w']+", tokens)
+            tokens = re.findall("[a-zA-Z0-9']+", tokens)
 
             for i, token in enumerate(tokens):
                 positions[token].append(i)
