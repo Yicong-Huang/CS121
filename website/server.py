@@ -29,4 +29,4 @@ if __name__ == "__main__":
     store = TokenStore()
     search_engine = SearchEngine(store)
 
-    app.run(debug=True)
+    app.run(debug=True,host = "0.0.0.0")

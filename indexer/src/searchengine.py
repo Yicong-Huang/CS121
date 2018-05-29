@@ -2,6 +2,7 @@ import datetime
 import json
 import math
 from collections import defaultdict
+from redisconnection import RedisConnection
 
 
 class SearchEngine:
@@ -43,48 +44,67 @@ class SearchEngine:
             return score
 
     def search(self, queries: list, limit=10):
-        print("SEARCH START")
+        
         time = datetime.datetime.now()
+        self.document_count = self._token_store.get_document_count()
 
-        pipeline = self._token_store._redis.pipeline()
-        for query in queries:
-            pipeline.hgetall(self._token_store.prefixed(query))
+        if len(queries) > 1:
+            print("MULTIPLE WORD SEARCH START")
+            pipeline = RedisConnection.shared().getConnection().pipeline()
+            for query in queries:
+                pipeline.hgetall(self._token_store.prefixed(query))
 
-        all_token_infos = {token: {page: self._token_store.meta_dict(meta) for page, meta in result.items()} for
-                           token, result in zip(queries, pipeline.execute())}
+            print("DONE INITIALIZE PIPELINES")
 
-        print("DONE QUERIES", datetime.datetime.now() - time)
+            all_token_infos = {token: {page: self._token_store.meta_dict(meta) for page, meta in result.items()} for
+                             token, result in zip(queries, pipeline.execute())}
 
-        print(all_token_infos)
-        all_occurrences = set()
+            print("DONE QUERIES", datetime.datetime.now() - time)
 
-        for token, info in all_token_infos.items():
-            page_set = set(info.keys())
-            if not all_occurrences:
-                all_occurrences = page_set
-            else:
-                all_occurrences &= page_set
+            all_occurrences = set()
 
-            if not all_occurrences:
-                break
+            for token, info in all_token_infos.items():
+                page_set = set(info.keys())
+                if not all_occurrences:
+                    all_occurrences = page_set
+                else:
+                    all_occurrences &= page_set
 
-        print("DONE INTERSECTION", datetime.datetime.now() - time)
+                if not all_occurrences:
+                    break
 
-        all_scores = defaultdict(dict)
+            print("DONE INTERSECTION", datetime.datetime.now() - time)
 
-        for page in all_occurrences:
-            all_positions = []
-            tf, weight = 0, 0
-            for token in queries:
-                all_positions.append(all_token_infos[token].get(page).get('all-positions', []))
-                tf += all_token_infos[token][page]['tf']
-                weight += all_token_infos[token][page]['weight']
-            all_scores[page] = {'pscore': self._score_position(*all_positions), "tscore": tf, "wscore": weight}
+            all_scores = defaultdict(dict)
 
-        print("DONE SCORING", datetime.datetime.now() - time)
+            for page in all_occurrences:
+                all_positions = []
+                tf, weight = 0, 0
+                for token in queries:
+                    all_positions.append(all_token_infos[token].get(page).get('all-positions', []))
+                    tf += all_token_infos[token][page]['tf']
+                    weight += all_token_infos[token][page]['weight']
+                all_scores[page] = {'pscore': self._score_position(*all_positions), "tscore": tf, "wscore": weight}
 
-        result = list(map(lambda x: "http://" + self.book[x[0]], sorted(all_scores.items(), key=lambda i: (
-            i[1]['wscore'] / (1 + math.log(i[1]['pscore'] + 0.00001)), i[1]['tscore']), reverse=True)[:limit]))
+            print("DONE SCORING", datetime.datetime.now() - time)
 
-        print("DONE SORTING", datetime.datetime.now() - time)
-        return result
+            result = list(map(lambda x: "http://" + self.book[x[0]], sorted(all_scores.items(), key=lambda i: (
+                i[1]['wscore'] / (1 + math.log(i[1]['pscore'] + 0.00001)), i[1]['tscore']), reverse=True)[:limit]))
+
+            print("DONE SORTING", datetime.datetime.now() - time)
+            return result
+
+        elif len(queries) == 1:
+            #single word search
+
+            print("SINGLE WORD SEARCH STARTED")
+            search_result = RedisConnection.shared().getConnection().hgetall(self._token_store.prefixed(queries[0]))
+        
+            for page,meta in search_result.items():
+                search_result[page] = self._token_store.meta_dict(meta)
+            
+            first_ten = list(map(lambda x:"http://"+self.book[x],[key[0] for key in sorted(search_result.items(), key = lambda pair : pair[1]['weight'] * math.log10(self.document_count/len(search_result)), reverse=True)[:10]]))
+            return first_ten
+        else:
+            return ["No input"]
+            
