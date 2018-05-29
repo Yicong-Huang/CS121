@@ -4,6 +4,8 @@ function handleSearchInput() {
     textlist = textlist.map(text => {
         return text.replace(/[.,\/#!$%^&*;:{}=\-_`~()]/g, "")
     });
+
+    textlist = textlist.filter(text => text != "")
     console.log(textlist);
 
     return textlist.join(',');
@@ -30,7 +32,7 @@ function handleSearchResult(resultData) {
     let showResultElement = jQuery("#show_result");
     showResultElement.empty();
 
-    if (resultData.length == 0) {
+    if (resultData.length === 0) {
 
         template =
             $("<div>", {
