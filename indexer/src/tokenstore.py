@@ -1,5 +1,6 @@
-from redisconnection import RedisConnection
+import ast
 
+from redisconnection import RedisConnection
 
 class TokenStore:
     def __init__(self, prefix='t'):
@@ -25,6 +26,9 @@ class TokenStore:
         meta['all-positions'] = ','.join(map(str, meta['all-positions']))
         meta = self._uglify_meta(meta)
         self._redis.hmset(self.prefixed(token), {page: meta})
+
+    def get_bookkeeping(self):
+        return ast.literal_eval(self._redis.get('file:bookkeeping.json'))
 
     def get_page_info(self, token, page):
         meta = self._unuglify_meta(self._redis.hget(self.prefixed(token), page))

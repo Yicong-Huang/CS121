@@ -10,8 +10,9 @@ class SearchEngine:
     # Todo: add search based on distance of documents
     def __init__(self, store):
         self._token_store = store
-        self.book = json.load(
-            open("WEBPAGES_RAW/bookkeeping.json", 'r'))
+        # self.book = json.load(
+            # open("WEBPAGES_RAW/bookkeeping.json", 'r'))
+        self.book = self._token_store.get_bookkeeping()
 
     # def search_one_query(self, query):
     #     """

@@ -1,12 +1,11 @@
 import redis
 import json
 
-r = redis.Redis().pipeline()
+r = redis.Redis()
+print('Loading bookkeeping.json...')
 bookkeeping = json.load(open('./src/WEBPAGES_RAW/bookkeeping.json', 'r'))
+print('Loaded bookkeeping.json.')
 
-bookkeeping = {"p:"+page: url for page, url in bookkeeping.items()}
-
-for key, val in bookkeeping.items():
-    r.set(key, val)
-
-r.execute()
+print('Saving bookkeeping.json into redis...')
+r.set('file:bookkeeping.json', str(bookkeeping))
+print('Saved bookkeeping.json into redis.')
