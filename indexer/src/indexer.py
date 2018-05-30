@@ -1,11 +1,9 @@
 import threading
 
-from HTML import Html
+from parser import Parser
 
 
 class Indexer:
-    # Todo: differentiate html and other files, could build exceptions in HTML
-
     def __init__(self, token_store):
         self._token_store = token_store
 
@@ -18,7 +16,7 @@ class Indexer:
         :return: None
         """
         print(threading.current_thread().getName(), "indexing", path, url)
-        token_with_meta = Html(path).get_token_meta()
+        token_with_meta = Parser(path).get_token_meta()
         if token_with_meta:
             for token, meta in token_with_meta:
                 self._token_store.store_page_info(token, path, meta)

@@ -4,10 +4,8 @@ function handleSearchInput() {
     textlist = textlist.map(text => {
         return text.replace(/[.,\/#!$%^&*;:{}=\-_`~()]/g, "")
     });
-
     textlist = textlist.filter(text => text !== "");
     console.log(textlist);
-
     return textlist.join(',');
 
 }
@@ -30,18 +28,17 @@ function handleSearchResult(resultData) {
     let showResultElement = jQuery("#show_result");
     showResultElement.empty();
 
+    let template;
     if (resultData.length === 0) {
 
         template =
             $("<div>", {
                 class: "container",
                 html: $("<div>", {
-                    class:
-                        "row justify-content-empty-center mb-5 ",
+                    class: "row justify-content-empty-center mb-5 ",
                     html: $("<div>", {
                         class: "col-centered",
                         html: $("<div>", {
-
                             class: "card",
                             html: $("<div>", {
                                 class: "card-block",
@@ -60,19 +57,15 @@ function handleSearchResult(resultData) {
         showResultElement.append(template);
 
     } else {
-        let template;
         for (let i = 0; i < Math.min(10, resultData.length); i++) {
-
             template =
                 $("<div>", {
                     class: "container",
                     html: $("<div>", {
-                        class:
-                            "row justify-content-empty-center mb-5 ",
+                        class: "row justify-content-empty-center mb-5 ",
                         html: $("<div>", {
                             class: "col-centered",
                             html: $("<div>", {
-
                                 class: "card",
                                 html: $("<div>", {
                                     class: "card-block",
@@ -84,8 +77,6 @@ function handleSearchResult(resultData) {
                             }),
                             style: "width:80%; margin-left :10%"
                         }),
-
-
                     })
                 });
             showResultElement.append(template);

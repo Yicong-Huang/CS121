@@ -25,7 +25,7 @@ if __name__ == '__main__':
     store = TokenStore()
     search_engine = SearchEngine(store)
 
-    signal.signal(signal.SIGINT, lambda signal, frame: exit(0))
+    signal.signal(signal.SIGINT, lambda _s, _f: exit(0))
 
     while True:
         search_queries, arg = command_line()

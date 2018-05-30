@@ -4,15 +4,14 @@ from collections import defaultdict, Generator
 from bs4 import BeautifulSoup, Comment
 
 
-class Html:
+class Parser:
     """
-    This class is a Parser to parse HTML files, a path like "0/0" and a url like "https://..."
-    will be required as parameters in __init__ method
+    This class is a Parser to parse HTML files, a path like "0/0" will be required
     """
 
     def __init__(self, path: str):
         """
-        Type of file can be parsed by Html
+        Type of file can be parsed
         html        pass
         txt         pass
         makefile    pass
@@ -20,7 +19,7 @@ class Html:
         jpg         no pass
         """
         self.path = path
-        self.data = ''.join(open("./WEBPAGES_RAW/" + path, encoding="utf-8").readlines()).lower()
+        self.data = ''.join(open("../WEBPAGES_RAW/" + path, encoding="utf-8").readlines()).lower()
 
         try:
             self._is_html = True

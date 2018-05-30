@@ -13,7 +13,7 @@ app = FlaskAPI(__name__)
 
 @app.route("/")
 def index():
-    return app.send_static_file('htmls/index.html')
+    return app.send_static_file('html/index.html')
 
 
 @app.route("/api/search", methods=["POST"])

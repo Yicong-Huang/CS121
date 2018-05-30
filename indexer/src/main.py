@@ -5,12 +5,8 @@ from tokenstore import TokenStore
 from workerpool import WorkerPool
 
 if __name__ == '__main__':
-    store = TokenStore()
-    indexer_mode = os.environ.get('INDEXER_MODE', 'SERVER')
-
-    pool = WorkerPool(store, workers=32, book_file=open("WEBPAGES_RAW/bookkeeping.json", 'r'), mode=indexer_mode)
-
+    pool = WorkerPool(TokenStore(), workers=32, book_file=open("../WEBPAGES_RAW/bookkeeping.json", 'r'),
+                      mode=os.environ.get('INDEXER_MODE', 'SERVER'))
     # capture signal.SIGINT and handle it with safe termination
-    signal.signal(signal.SIGINT, lambda signal, frame: pool.safe_terminate())
-
+    signal.signal(signal.SIGINT, lambda _s, _f: pool.safe_terminate())
     pool.execute()

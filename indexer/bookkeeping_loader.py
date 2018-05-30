@@ -1,9 +1,10 @@
-import redis
 import json
+
+import redis
 
 r = redis.Redis()
 print('Loading bookkeeping.json...')
-bookkeeping = json.load(open('./src/WEBPAGES_RAW/bookkeeping.json', 'r'))
+bookkeeping = json.load(open('./WEBPAGES_RAW/bookkeeping.json', 'r'))
 print('Loaded bookkeeping.json.')
 
 print('Saving bookkeeping.json into redis...')

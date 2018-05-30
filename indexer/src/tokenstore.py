@@ -69,8 +69,6 @@ class TokenStore:
         for token in tokens:
             pipeline.hgetall(self.prefixed(token))
 
-        print("DONE INITIALIZE PIPELINES")
-
         return {token: {page: self._unuglify_meta(meta) for page, meta in result.items()}
                 for token, result in zip(tokens, pipeline.execute())}
 
