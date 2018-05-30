@@ -1,34 +1,19 @@
-import datetime
-import json
 import math
-from collections import defaultdict
-from redisconnection import RedisConnection
+from datetime import datetime
+from functools import reduce
 
 
 class SearchEngine:
+    HTTP = "http://"
 
     # Todo: add search based on distance of documents
     def __init__(self, store):
         self._token_store = store
-        # self.book = json.load(
-            # open("WEBPAGES_RAW/bookkeeping.json", 'r'))
         self.book = self._token_store.get_bookkeeping()
-
-    # def search_one_query(self, query):
-    #     """
-    #     search is a generator function that yields a sequence of paths that
-    #     matches the query from the user
-    #     """
-    #
-    #     return self._token_store.get_pages_by_token(query)
-
-    def search_with_tf_idf(self, query):
-        for page in sorted(self._token_store._redis.zrange(self._token_store.prefixed(query), 0, -1),
-                           key=lambda page: self._token_store.tf_idf(query, page), reverse=True):
-            yield self._token_store.decode(page)
+        self.document_count = self._token_store.get_document_count()
 
     @staticmethod
-    def _score_position(first: list, second: list, *args):
+    def _score_position(first: [int], second: [int], *args):
         params = [first, second, *args]
         score = 0
         if args:
@@ -45,67 +30,39 @@ class SearchEngine:
             return score
 
     def search(self, queries: list, limit=10):
-        
-        time = datetime.datetime.now()
-        self.document_count = self._token_store.get_document_count()
-
+        time = datetime.now()
         if len(queries) > 1:
             print("MULTIPLE WORD SEARCH START")
-            pipeline = RedisConnection.shared().getConnection().pipeline()
-            for query in queries:
-                pipeline.hgetall(self._token_store.prefixed(query))
-
-            print("DONE INITIALIZE PIPELINES")
-
-            all_token_infos = {token: {page: self._token_store.meta_dict(meta) for page, meta in result.items()} for
-                             token, result in zip(queries, pipeline.execute())}
-
-            print("DONE QUERIES", datetime.datetime.now() - time)
-
-            all_occurrences = set()
-
-            for token, info in all_token_infos.items():
-                page_set = set(info.keys())
-                if not all_occurrences:
-                    all_occurrences = page_set
-                else:
-                    all_occurrences &= page_set
-
-                if not all_occurrences:
-                    break
-
-            print("DONE INTERSECTION", datetime.datetime.now() - time)
-
-            all_scores = defaultdict(dict)
-
-            for page in all_occurrences:
-                all_positions = []
-                tf, weight = 0, 0
-                for token in queries:
-                    all_positions.append(all_token_infos[token].get(page).get('all-positions', []))
-                    tf += all_token_infos[token][page]['tf']
-                    weight += all_token_infos[token][page]['weight']
-                all_scores[page] = {'pscore': self._score_position(*all_positions), "tscore": tf, "wscore": weight}
-
-            print("DONE SCORING", datetime.datetime.now() - time)
-
-            result = list(map(lambda x: "http://" + self.book[x[0]], sorted(all_scores.items(), key=lambda i: (
+            all_token_infos = self._token_store.get_all_token_info(queries)
+            print("DONE QUERIES", datetime.now() - time)
+            all_occurrences = reduce(lambda x, y: x & y, [token_dict.keys() for token_dict in all_token_infos.values()])
+            print("DONE INTERSECTION", datetime.now() - time)
+            all_scores = {page: {'pscore': self._score_position(
+                *[all_token_infos[token].get(page).get('all-positions', []) for token in queries]),
+                "tscore": sum([all_token_infos[token][page]['tf'] for token in queries]),
+                "wscore": sum([all_token_infos[token][page]['weight'] for token in queries])} for
+                page in all_occurrences}
+            print("DONE SCORING", datetime.now() - time)
+            result = list(map(self.convert_http, sorted(all_scores.items(), key=lambda i: (
                 i[1]['wscore'] / (1 + math.log(i[1]['pscore'] + 0.00001)), i[1]['tscore']), reverse=True)[:limit]))
-
-            print("DONE SORTING", datetime.datetime.now() - time)
+            print("DONE SORTING", datetime.now() - time)
+            print("DONE SEARCH", datetime.now() - time)
             return result
 
-        elif len(queries) == 1:
-            #single word search
-
-            print("SINGLE WORD SEARCH STARTED")
-            search_result = RedisConnection.shared().getConnection().hgetall(self._token_store.prefixed(queries[0]))
-        
-            for page,meta in search_result.items():
-                search_result[page] = self._token_store.meta_dict(meta)
-            
-            first_ten = list(map(lambda x:"http://"+self.book[x],[key[0] for key in sorted(search_result.items(), key = lambda pair : pair[1]['weight'] * math.log10(self.document_count/len(search_result)), reverse=True)[:10]]))
-            return first_ten
         else:
-            return ["No input"]
-            
+            # single word search
+            print("SINGLE WORD SEARCH STARTED")
+            search_result = self._token_store.path_scores(*queries)
+            print("DONE QUERIES WITH SCORING", datetime.now() - time)
+            result = list(
+                map(self.convert_http,
+                    sorted(search_result.items(),
+                           key=lambda path_score_pair: path_score_pair[1]["weight"] * math.log10(
+                               self.document_count / len(search_result)), reverse=True)[:limit]))
+
+            print("DONE SORTING", datetime.now() - time)
+            print("DONE SEARCH", datetime.now() - time)
+            return result
+
+    def convert_http(self, path_score_pair: (str, dict)):
+        return "{http}{url}".format(http=SearchEngine.HTTP, url=self.book[path_score_pair[0]])

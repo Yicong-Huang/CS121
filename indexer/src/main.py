@@ -1,9 +1,8 @@
+import os
 import signal
 
 from tokenstore import TokenStore
 from workerpool import WorkerPool
-
-import os
 
 if __name__ == '__main__':
     store = TokenStore()

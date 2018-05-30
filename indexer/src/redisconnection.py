@@ -1,12 +1,14 @@
 import os
+
 from redis import StrictRedis, ConnectionPool
+
 
 class RedisConnection:
     __instance = None
 
     @staticmethod
     def shared():
-        if RedisConnection.__instance == None:
+        if not RedisConnection.__instance:
             RedisConnection()
         return RedisConnection.__instance
 
@@ -17,10 +19,10 @@ class RedisConnection:
         port = int(port) if len(port) > 0 else 6379
         self.pool = ConnectionPool(host=host, port=port, db=0, decode_responses=True)
 
-        if RedisConnection.__instance != None:
+        if RedisConnection.__instance:
             raise Exception("This class is a singleton!")
         else:
             RedisConnection.__instance = self
 
-    def getConnection(self):
+    def get_connection(self):
         return StrictRedis(connection_pool=self.pool)

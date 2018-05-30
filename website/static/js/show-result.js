@@ -5,20 +5,18 @@ function handleSearchInput() {
         return text.replace(/[.,\/#!$%^&*;:{}=\-_`~()]/g, "")
     });
 
-    textlist = textlist.filter(text => text != "")
+    textlist = textlist.filter(text => text !== "");
     console.log(textlist);
 
     return textlist.join(',');
+
 }
 
 
 function handleSearch() {
-    let text = handleSearchInput();
-    console.log(text);
-
     jQuery.ajax({
         dataType: "json",
-        data: {'queries': text},
+        data: {'queries': handleSearchInput()},
         url: "api/search",
         method: "POST",
         success: (resultData) => handleSearchResult(resultData)

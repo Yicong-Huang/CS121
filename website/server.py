@@ -17,16 +17,15 @@ def index():
 
 
 @app.route("/api/search", methods=["POST"])
-def search():
+def search() -> list:
     """
     curl -X POST http://127.0.0.1:5000/api/search -d  queries="hello world"
     """
-    queries = request.data.get("queries").lower().split(",")
-    return search_engine.search(queries) or []
+    return search_engine.search(request.data.get("queries").lower().split(","))
 
 
 if __name__ == "__main__":
     store = TokenStore()
     search_engine = SearchEngine(store)
 
-    app.run(debug=True,host = "0.0.0.0")
+    app.run(debug=True, host="0.0.0.0")

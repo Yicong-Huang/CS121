@@ -9,25 +9,25 @@ class PoolQueue:
     ACTIVE = 'active'
 
     def __init__(self, token_store=None):
-        self._redis = RedisConnection.shared().getConnection()
+        self._redis = RedisConnection.shared().get_connection()
         self._token_store = token_store
 
-    def get_idle(self):
+    def get_idle(self) -> list:
         return self._redis.lrange(PoolQueue.IDLE, 0, -1)
 
-    def get_active(self):
+    def get_active(self) -> list:
         return self._redis.lrange(PoolQueue.ACTIVE, 0, -1)
 
-    def has_idle_job(self):
+    def has_idle_job(self) -> bool:
         return len(self._redis.lrange(PoolQueue.IDLE, 0, 0)) != 0
 
-    def has_active_job(self):
+    def has_active_job(self) -> bool:
         return len(self._redis.lrange(PoolQueue.ACTIVE, 0, 0)) != 0
 
-    def indexer_jobs_completed(self):
-        return self._redis.get("indexer:jobs:completed") == 'True'
+    def indexer_jobs_completed(self) -> bool:
+        return self._redis.get("indexer:jobs:completed") == "True"
 
-    def enqueue_idles(self, jobs, queue=IDLE):
+    def enqueue_idles(self, jobs: [Job], queue=IDLE):
         print("Enqueuing jobs...")
         pipeline = self._redis.pipeline()
         for job in jobs:
@@ -36,7 +36,7 @@ class PoolQueue:
 
     def get_next_job(self, f=IDLE, t=ACTIVE):
         job_bytes = self._redis.rpoplpush(f, t)
-        if job_bytes is None:
+        if not job_bytes:
             self._redis.set("indexer:jobs:completed", "True")
             print("No more job available!")
         else:
@@ -44,6 +44,6 @@ class PoolQueue:
             print(threading.current_thread().getName(), "get Next Job: %s" % job.path)
             return job
 
-    def complete(self, job, queue=ACTIVE):
+    def complete(self, job: Job, queue=ACTIVE):
         print(threading.current_thread().getName(), "completed Job: %s" % job.path)
         self._redis.lrem(queue, 1, job)

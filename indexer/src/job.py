@@ -12,5 +12,3 @@ class Job:
         j = job_bytes.lstrip("job:")
         c = j.index(':')
         return Job(j[:c], j[c + 1:])
-
-

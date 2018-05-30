@@ -2,41 +2,47 @@ import ast
 
 from redisconnection import RedisConnection
 
+
 class TokenStore:
     def __init__(self, prefix='t'):
         self._prefix = prefix
-        self._redis = RedisConnection.shared().getConnection()
+        self._redis = RedisConnection.shared().get_connection()
 
-    def _uglify_meta(self, meta):
-        return "/".join(map(str, [meta['weight'], meta['all-positions']]))
-
-    def _unuglify_meta(self, meta_str):
-        return dict(zip(['weight', 'all-positions'], meta_str.split('/')))
-
-    def store_page_info(self, token, page, meta):
+    @staticmethod
+    def _uglify_meta(meta: dict) -> str:
         """
-        token: "myToken"
-        page: "0/0"
-        meta:
-            tf: 20
-            weight: 5
-            all-positions: [1,2,3]
+        transform the meta dictionary into a shortened string to save database usage
+        :param meta: a dictionary contains weight score and all positions of the token
+        :return: meta_str
         """
+        return "{weight}/{positions}".format(weight=meta['weight'], positions=','.join(map(str, meta['all-positions'])))
 
-        meta['all-positions'] = ','.join(map(str, meta['all-positions']))
-        meta = self._uglify_meta(meta)
-        self._redis.hmset(self.prefixed(token), {page: meta})
+    @staticmethod
+    def _unuglify_meta(meta_str: str) -> dict:
+        """
+        transform the meta_str get from database back to the meta dictionary
+        :param meta_str: a shortened string of meta
+        :return: {"tf": int, "weight":int, "all-positions":[int]}
+        """
+        meta = dict(zip(['weight', 'all-positions'], meta_str.split('/')))
+        return {"weight": int(meta['weight']),
+                "tf": len(meta['all-positions'].split(',')),
+                "all-positions": list(map(int, meta['all-positions'].split(',')))}
 
     def get_bookkeeping(self):
         return ast.literal_eval(self._redis.get('file:bookkeeping.json'))
 
-    def get_page_info(self, token, page):
-        meta = self._unuglify_meta(self._redis.hget(self.prefixed(token), page))
+    def store_page_info(self, token: str, page: str, meta) -> None:
+        """
+        store the token-page's meta dictionary into redis
+        :param token: a word from the document
+        :param page: page path like "0/1"
+        :param meta:
+        """
+        self._redis.hmset(self.prefixed(token), {page: self._uglify_meta(meta)})
 
-        meta['weight'] = int(meta['weight'])
-        meta['all-positions'] = map(int, meta['all-positions'].split(','))
-        meta['tf'] = len(meta['all-positions'])
-        return meta
+    def get_page_info(self, token: str, page: str) -> dict:
+        return self._unuglify_meta(self._redis.hget(self.prefixed(token), page))
 
     def prefixed(self, token: str) -> str:
         """
@@ -44,7 +50,7 @@ class TokenStore:
         :param token: a word from the document
         :return: formatted token string
         """
-        return "{}:{}".format(self._prefix, token)
+        return "{prefix}:{token}".format(prefix=self._prefix, token=token)
 
     def increment_document_count(self) -> None:
         """
@@ -58,9 +64,16 @@ class TokenStore:
         """
         return int(self._redis.get("document_count") or 0)
 
-    def meta_dict(self, meta_str):
-        meta = self._unuglify_meta(meta_str)
-        meta['weight'] = int(meta['weight'])
-        meta['tf'] = len(meta['all-positions'])
-        meta['all-positions'] = map(int, meta['all-positions'].split(','))
-        return meta
+    def get_all_token_info(self, tokens: [str]):
+        pipeline = self._redis.pipeline()
+        for token in tokens:
+            pipeline.hgetall(self.prefixed(token))
+
+        print("DONE INITIALIZE PIPELINES")
+
+        return {token: {page: self._unuglify_meta(meta) for page, meta in result.items()}
+                for token, result in zip(tokens, pipeline.execute())}
+
+    def path_scores(self, token: str):
+        return {path: self._unuglify_meta(meta_str) for path, meta_str in
+                self._redis.hgetall(self.prefixed(token)).items()}

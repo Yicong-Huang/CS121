@@ -17,13 +17,11 @@ class Indexer:
         :param url: corresponding url for the document
         :return: None
         """
-        document = path + ":" + url
         print(threading.current_thread().getName(), "indexing", path, url)
-        h = Html(path, url)
-        token_with_metas = h.token_metas()
-        if token_with_metas:
-            for token, metas in token_with_metas:
-                self._token_store.store_page_info(token, path, metas)
+        token_with_meta = Html(path).get_token_meta()
+        if token_with_meta:
+            for token, meta in token_with_meta:
+                self._token_store.store_page_info(token, path, meta)
             self._token_store.increment_document_count()
         else:
             raise RuntimeError()

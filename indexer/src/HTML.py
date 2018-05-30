@@ -10,8 +10,7 @@ class Html:
     will be required as parameters in __init__ method
     """
 
-    def __init__(self, path, url):
-
+    def __init__(self, path: str):
         """
         Type of file can be parsed by Html
         html        pass
@@ -20,10 +19,7 @@ class Html:
 
         jpg         no pass
         """
-
         self.path = path
-        self.url = url
-
         self.data = ''.join(open("./WEBPAGES_RAW/" + path, encoding="utf-8").readlines()).lower()
 
         try:
@@ -33,7 +29,7 @@ class Html:
             self._is_html = False
             print('not html')
 
-    def token_metas(self) -> Generator:
+    def get_token_meta(self) -> Generator:
         """
         This method will filter out unrelated data in a html file and return a Counter
         of the tokens and the occurrence of tokens in the html file
