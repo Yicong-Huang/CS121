@@ -1,6 +1,16 @@
+import itertools
 import threading
+from collections import Iterator
 
 from parser import Parser
+
+
+def peek(iterable) -> (bool, Iterator):
+    try:
+        first = next(iterable)
+    except StopIteration:
+        return False, None
+    return True, itertools.chain([first], iterable)
 
 
 class Indexer:
@@ -16,13 +26,11 @@ class Indexer:
         :return: None
         """
         print(threading.current_thread().getName(), "indexing", path, url)
-        token_with_meta = Parser(path).get_token_meta()
-        if token_with_meta:
+        has_token, token_with_meta = peek(Parser(path).get_token_meta())
+        if has_token:
             for token, meta in token_with_meta:
                 self._token_store.store_page_info(token, path, meta)
             self._token_store.increment_document_count()
-        else:
-            raise RuntimeError()
 
     @staticmethod
     def safe_terminate():
