@@ -1,5 +1,3 @@
-import ast
-
 from redisconnection import RedisConnection
 
 
@@ -29,8 +27,11 @@ class TokenStore:
                 "tf": len(meta['all-positions'].split(',')),
                 "all-positions": list(map(int, meta['all-positions'].split(',')))}
 
-    def get_bookkeeping(self):
-        return ast.literal_eval(self._redis.get('file:bookkeeping.json'))
+    def store_bookkeeping(self, bookkeeping: dict):
+        self._redis.hmset('bookkeeping', bookkeeping)
+
+    def get_bookkeeping(self) -> dict:
+        return self._redis.hgetall("bookkeeping")
 
     def store_page_info(self, token: str, page: str, meta) -> None:
         """
