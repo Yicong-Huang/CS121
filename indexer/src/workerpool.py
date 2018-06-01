@@ -29,7 +29,6 @@ class WorkerPool:
     def _reenqueue_active(self):
         for _ in self._work_queue.get_active():
             pipeline = self._redis.pipeline()
-            pipeline.decr('document_count', 1)
             pipeline.rpoplpush(PoolQueue.ACTIVE, PoolQueue.IDLE)
             pipeline.execute()
 
