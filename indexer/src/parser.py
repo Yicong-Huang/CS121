@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict, Generator
 
-from bs4 import BeautifulSoup, Comment
+import bs4
 
 
 class Parser:
@@ -19,14 +19,8 @@ class Parser:
         jpg         no pass
         """
         self.path = path
-        self.data = ''.join(open("../WEBPAGES_RAW/" + path, encoding="utf-8").readlines()).lower()
-
-        try:
-            self._is_html = True
-            self.soup = BeautifulSoup(self.data, 'html.parser')
-        except:
-            self._is_html = False
-            print('not html')
+        self.soup = bs4.BeautifulSoup(''.join(open("../WEBPAGES_RAW/" + path, encoding="utf-8").readlines()).lower(),
+                                      'html.parser')
 
     def get_token_meta(self) -> Generator:
         """
@@ -36,36 +30,34 @@ class Parser:
         positions = defaultdict(list)
         weights = defaultdict(int)
 
-        if self._is_html:
+        self.parse_title(weights)
+        self.parse_headers(weights)
 
-            self.parse_title(weights)
-            self.parse_headers(weights)
+        for comment in self.soup.findAll(text=lambda text: isinstance(text, bs4.Comment)):
+            comment.extract()
 
-            for comment in self.soup.findAll(text=lambda text: isinstance(text, Comment)):
-                comment.extract()
+        # strip off the content surrounded by <script>
+        for script in self.soup('script'):
+            script.extract()
 
-            # strip off the content surrounded by <script>
-            for script in self.soup('script'):
-                script.extract()
+        # strip off the content surrounded by <link>
+        for link in self.soup('link'):
+            link.extract()
 
-            # strip off the content surrounded by <link>
-            for link in self.soup('link'):
-                link.extract()
+        # strip off the CSS style, which is surrounded by <style>
+        for style in self.soup("style"):
+            style.extract()
 
-            # strip off the CSS style, which is surrounded by <style>
-            for style in self.soup("style"):
-                style.extract()
+        # find all text nodes and choose the ones that is a word
+        tokens = self.soup.get_text(separator=" ", strip=True)
+        tokens = re.findall("[a-zA-Z0-9']+", tokens)
 
-            # find all text nodes and choose the ones that is a word
-            tokens = self.soup.get_text(separator=" ", strip=True)
-            tokens = re.findall("[a-zA-Z0-9']+", tokens)
+        for i, token in enumerate(tokens):
+            positions[token].append(i)
+            self._increment_token_weight(weights, token=token)
 
-            for i, token in enumerate(tokens):
-                positions[token].append(i)
-                self._increment_token_weight(weights, token=token)
-
-            for token in set(tokens):
-                yield (token, {'weight': weights[token], 'all-positions': positions[token]})
+        for token in set(tokens):
+            yield (token, {'weight': weights[token], 'all-positions': positions[token]})
 
     def parse_title(self, _weight_dict: dict):
         self._increment_token_weight(_weight_dict, tag="title", weight=4)

@@ -118,7 +118,7 @@ class WorkerPool:
                     print("Attempting to join {thread_name}, still waiting for {count} workers...".format(
                         thread_name=name, count=rest_worker_count))
                     thread.join()
-                    print("Joined '%s', still waiting for %d workers" % name, rest_worker_count)
+                    print("Joined {thread}, still waiting for {num} workers".format(thread=name, num=rest_worker_count))
 
         terminator_thread = threading.Thread(target=terminator)
         terminator_thread.start()
